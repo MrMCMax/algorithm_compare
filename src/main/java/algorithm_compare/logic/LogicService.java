@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import algorithm_compare.persistence.GraphData;
+import static algorithm_compare.persistence.GraphData.TwoEndpointEdge;
 import algorithm_compare.persistence.IPersistenceService;
 import algorithm_compare.persistence.PersistenceService;
 
@@ -61,7 +62,7 @@ public class LogicService implements ILogicService {
 	 * @param networkName the network's unique name
 	 * @return the associated ResidualGraph object
 	 */
-	private ResidualGraphList getGraph(String networkName) throws IOException {
+	protected ResidualGraphList getGraph(String networkName) throws IOException {
 		if (loadedGraphs.containsKey(networkName)) {
 			return loadedGraphs.get(networkName);
 		} else {
@@ -78,7 +79,12 @@ public class LogicService implements ILogicService {
 	 * @return the associated ResidualGraph object, built by adjacency lists.
 	 */
 	private ResidualGraphList buildAdjacencyListGraph(GraphData gd) {
-		return null;
+		ResidualGraphList rg = new ResidualGraphList(gd.n);
+		TwoEndpointEdge[] edges = gd.edges;
+		for (int i = 0; i < edges.length; i++) {
+			rg.addEdge(edges[i].v_in - 1, edges[i].v_out - 1, edges[i].capacity);
+		}
+		return rg;
 	}
 	
 }

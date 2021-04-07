@@ -14,7 +14,7 @@ public class GraphData {
 		this.t = t;
 	}
 	
-	static class TwoEndpointEdge {
+	public static class TwoEndpointEdge {
 		public int v_in;
 		public int v_out;
 		public int capacity;
