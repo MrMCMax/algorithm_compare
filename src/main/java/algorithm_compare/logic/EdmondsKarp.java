@@ -1,5 +1,7 @@
 package algorithm_compare.logic;
 
+import mrmcmax.data_structures.graphs.ResidualGraphList;
+
 public class EdmondsKarp extends Algorithm {
 
 	public EdmondsKarp() {
@@ -7,7 +9,7 @@ public class EdmondsKarp extends Algorithm {
 	}
 	
 	@Override
-	public long maxFlow(ResidualGraph g) {
+	public long maxFlow(ResidualGraphList g) {
 		return 0;
 	}
 }

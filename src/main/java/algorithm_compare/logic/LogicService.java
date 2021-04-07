@@ -10,10 +10,12 @@ import algorithm_compare.persistence.GraphData;
 import algorithm_compare.persistence.IPersistenceService;
 import algorithm_compare.persistence.PersistenceService;
 
+import mrmcmax.data_structures.graphs.ResidualGraphList;
+
 public class LogicService implements ILogicService {
 	
 	private Map<String, Algorithm> algorithmMap;
-	private Map<String, ResidualGraph> loadedGraphs;
+	private Map<String, ResidualGraphList> loadedGraphs;
 	
 	private IPersistenceService persistenceService;
 	
@@ -47,7 +49,7 @@ public class LogicService implements ILogicService {
 	@Override
 	public long[] computeNetworkWithAlgorithms(String netName, String[] algNames) throws IOException {
 		long[] results = new long[algNames.length];
-		ResidualGraph g = getGraph(netName);
+		ResidualGraphList g = getGraph(netName);
 		for (int i = 0; i < algNames.length; i++) {
 			results[i] = algorithmMap.get(algNames[i]).maxFlow(g);
 		}
@@ -59,12 +61,12 @@ public class LogicService implements ILogicService {
 	 * @param networkName the network's unique name
 	 * @return the associated ResidualGraph object
 	 */
-	private ResidualGraph getGraph(String networkName) throws IOException {
+	private ResidualGraphList getGraph(String networkName) throws IOException {
 		if (loadedGraphs.containsKey(networkName)) {
 			return loadedGraphs.get(networkName);
 		} else {
 			GraphData gd = persistenceService.loadNetwork(networkName);
-			ResidualGraph rg = buildAdjacencyListGraph(gd);
+			ResidualGraphList rg = buildAdjacencyListGraph(gd);
 			loadedGraphs.put(networkName, rg);
 			return rg;
 		}
@@ -75,9 +77,8 @@ public class LogicService implements ILogicService {
 	 * @param networkName the network's unique name
 	 * @return the associated ResidualGraph object, built by adjacency lists.
 	 */
-	private ResidualGraph buildAdjacencyListGraph(GraphData gd) {
-		
-		return new ResidualGraph();
+	private ResidualGraphList buildAdjacencyListGraph(GraphData gd) {
+		return null;
 	}
 	
 }

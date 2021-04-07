@@ -52,6 +52,11 @@
 			<version>6.9.1</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>mrmcmax</groupId>
+			<artifactId>data_structures</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
 	</dependencies>
   
   

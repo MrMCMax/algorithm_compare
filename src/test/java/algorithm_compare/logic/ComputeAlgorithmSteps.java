@@ -45,7 +45,7 @@ public class ComputeAlgorithmSteps {
 				fail("No results given");
 			}
 		} catch (Exception e) {
-			System.err.println(e);
+			e.printStackTrace();
 			fail(e.getMessage());
 		}
 	}

@@ -1,5 +1,7 @@
 package algorithm_compare.logic;
 
+import mrmcmax.data_structures.graphs.ResidualGraphList;
+
 public abstract class Algorithm {
 	private String name;
 	
@@ -17,5 +19,5 @@ public abstract class Algorithm {
 		return name;
 	}
 	
-	public abstract long maxFlow(ResidualGraph g);
+	public abstract long maxFlow(ResidualGraphList g);
 }

@@ -39,7 +39,7 @@ public class ReadNetworkSteps {
 			hadException = false;
 		} catch (Exception e) {
 			hadException = true;
-			System.err.println(e);
+			e.printStackTrace();
 		}
 	}
 	
