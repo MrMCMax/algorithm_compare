@@ -9,6 +9,7 @@ public class FastReader {
 	private DataInputStream din;
 	private byte[] buffer;
 	private int bufferPointer, bytesRead;
+	private static final int LINE_SIZE = 128;
 
 	public FastReader() {
 		din = new DataInputStream(System.in);
@@ -23,7 +24,7 @@ public class FastReader {
 	}
 
 	public String readLine() throws IOException {
-		byte[] buf = new byte[64]; // line length
+		byte[] buf = new byte[LINE_SIZE]; // line length
 		int cnt = 0, c;
 		while ((c = read()) != -1) {
 			if (c == '\n')
