@@ -50,17 +50,19 @@ public class ReadNetworkSteps {
 	
 	@Then("the source is {int}")
 	public void theSourceIs(Integer int1) {
-		assertEquals(int1, gd.s);
+		assertEquals(int1 - 1, gd.s);
 	}
 	
 	@Then("the sink is {int}")
 	public void theSinkIs(Integer int1) {
-		assertEquals(int1, gd.t);
+		assertEquals(int1 - 1, gd.t);
 	}
 	
 	@Then("there exists an edge from {int} to {int} with cap {int}")
 	public void thereExistsAnEdgeFromToWithCap(Integer v_in, Integer v_out, Integer cap) {
 		TwoEndpointEdge[] edges = gd.edges;
+		v_in -= 1;
+		v_out -= 1;
 		boolean found = false;
 		int i = 0;
 		while (!found && i < edges.length) {

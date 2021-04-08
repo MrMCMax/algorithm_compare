@@ -2,17 +2,17 @@ package algorithm_compare.logic;
 
 import mrmcmax.data_structures.graphs.ResidualGraphList;
 
-public abstract class Algorithm {
+public abstract class FlowAlgorithm {
 	private String name;
 	
-	public Algorithm(String name) {
+	public FlowAlgorithm(String name) {
 		this.name = name;
 	}
 	
 	@Override
 	public boolean equals(Object other) {
-		return (other instanceof Algorithm) &&
-				((Algorithm) other).name.equals(this.name);
+		return (other instanceof FlowAlgorithm) &&
+				((FlowAlgorithm) other).name.equals(this.name);
 	}
 
 	public String getName() {

@@ -52,8 +52,9 @@ public class ComputeAlgorithmSteps {
 	
 	@Then("we get the result {long} on all of them")
 	public void weGetTheResultOnAllOfThem(Long maxFlow) {
-		for (long res : results) {
-			assertEquals(maxFlow, res, "Max flow value");
+		for (int i = 0; i < results.length; i++) {
+			long res = results[i];
+			assertEquals(maxFlow, res, "Max flow value with algorithm " + names[i]);
 		}
 	}
 }

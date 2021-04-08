@@ -51,11 +51,11 @@ public class Network implements Serializable {
 		}
 		int s = 0, t = 0;
 		if (nodeDescriptor1[2].equals("s") && nodeDescriptor2[2].equals("t")) {
-			s = Integer.parseInt(nodeDescriptor1[1]);
-			t = Integer.parseInt(nodeDescriptor2[1]);
+			s = Integer.parseInt(nodeDescriptor1[1]) - 1;	//So that the vertices start at 0
+			t = Integer.parseInt(nodeDescriptor2[1]) - 1;
 		} else if (nodeDescriptor1[2].equals("t") && nodeDescriptor2[2].equals("s")) {
-			t = Integer.parseInt(nodeDescriptor1[1]);
-			s = Integer.parseInt(nodeDescriptor2[1]);
+			t = Integer.parseInt(nodeDescriptor1[1]) - 1;
+			s = Integer.parseInt(nodeDescriptor2[1]) - 1;
 		} else {
 			throw new IOException("Bad DIMACS format: can't read node descriptors");
 		}
@@ -97,7 +97,8 @@ public class Network implements Serializable {
 				fr.readLine();
 				next = fr.nextChar();
 			}
-			int[] res = new int[] { fr.nextInt(), fr.nextInt(), fr.nextInt() };
+			//-1 so that the vertices start at 0
+			int[] res = new int[] { fr.nextInt() - 1, fr.nextInt() - 1, fr.nextInt() };
 			return res;
 		} catch (IOException e) {
 			throw new IOException("Bad DIMACS format: can't read edge");

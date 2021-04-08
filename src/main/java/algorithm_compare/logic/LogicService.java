@@ -7,15 +7,14 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import algorithm_compare.persistence.GraphData;
-import static algorithm_compare.persistence.GraphData.TwoEndpointEdge;
+import algorithm_compare.persistence.GraphData.TwoEndpointEdge;
 import algorithm_compare.persistence.IPersistenceService;
 import algorithm_compare.persistence.PersistenceService;
-
 import mrmcmax.data_structures.graphs.ResidualGraphList;
 
 public class LogicService implements ILogicService {
 	
-	private Map<String, Algorithm> algorithmMap;
+	private Map<String, FlowAlgorithm> algorithmMap;
 	private Map<String, ResidualGraphList> loadedGraphs;
 	
 	private IPersistenceService persistenceService;
@@ -29,8 +28,12 @@ public class LogicService implements ILogicService {
 		this.persistenceService = new PersistenceService();
 		loadedGraphs = new HashMap<>();
 		algorithmMap = new HashMap<>();
-		Algorithm edmondsKarp = new EdmondsKarp();
+		FlowAlgorithm edmondsKarp = new EdmondsKarp();
+		FlowAlgorithm scalingEdmondsKarp = new ScalingEdmondsKarp();
+		FlowAlgorithm dinicsAlgorithm = new DinicsAlgorithm();
 		algorithmMap.put(edmondsKarp.getName(), edmondsKarp);
+		algorithmMap.put(scalingEdmondsKarp.getName(), scalingEdmondsKarp);
+		algorithmMap.put(dinicsAlgorithm.getName(), dinicsAlgorithm);
 	}
 	
 	public LogicService(IPersistenceService persistenceService) {
@@ -52,7 +55,12 @@ public class LogicService implements ILogicService {
 		long[] results = new long[algNames.length];
 		ResidualGraphList g = getGraph(netName);
 		for (int i = 0; i < algNames.length; i++) {
-			results[i] = algorithmMap.get(algNames[i]).maxFlow(g);
+			if (algorithmMap.containsKey(algNames[i])) {
+				results[i] = algorithmMap.get(algNames[i]).maxFlow(g);
+				g.resetFlowsToZero();
+			} else {
+				throw new RuntimeException("This algorithm hasn't been implemented yet: " + algNames[i]);
+			}
 		}
 		return results;
 	}
@@ -80,9 +88,11 @@ public class LogicService implements ILogicService {
 	 */
 	private ResidualGraphList buildAdjacencyListGraph(GraphData gd) {
 		ResidualGraphList rg = new ResidualGraphList(gd.n);
+		rg.setSource(gd.s);
+		rg.setSink(gd.t);
 		TwoEndpointEdge[] edges = gd.edges;
 		for (int i = 0; i < edges.length; i++) {
-			rg.addEdge(edges[i].v_in - 1, edges[i].v_out - 1, edges[i].capacity);
+			rg.addEdge(edges[i].v_in, edges[i].v_out, edges[i].capacity);
 		}
 		return rg;
 	}
