@@ -15,4 +15,6 @@ public interface ILogicService {
 	 * Stores the result in the default directory.
 	 * @return The value of the maximum flow */
 	long[] computeNetworkWithAlgorithms(String netName, String[] algNames) throws IOException;
+
+	long[] retrieveTimes(String network, String[] algNames) throws IOException;
 }

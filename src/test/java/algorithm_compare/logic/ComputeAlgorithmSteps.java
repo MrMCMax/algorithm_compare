@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import algorithm_compare.TestUtils;
 import io.cucumber.java.en.Given;
@@ -55,6 +56,17 @@ public class ComputeAlgorithmSteps {
 		for (int i = 0; i < results.length; i++) {
 			long res = results[i];
 			assertEquals(maxFlow, res, "Max flow value with algorithm " + names[i]);
+		}
+	}
+	
+	@Then("we can retrieve the times for the algorithms")
+	public void weCanRetrieveTheTimesForTheAlgorithms() {
+		try {
+			long[] times = logicService.retrieveTimes(network, names);
+			System.out.println(Arrays.toString(times));
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail(e.getMessage());
 		}
 	}
 }

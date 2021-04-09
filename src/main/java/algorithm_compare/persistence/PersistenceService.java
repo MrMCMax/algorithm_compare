@@ -22,7 +22,7 @@ public class PersistenceService implements IPersistenceService {
 	public static final String PATH_TO_RESOURCES = "./src/main/resources/persistence/networks/";
 
 	// Where the times are stored
-	private static final String PATH_TO_DATA = "./src/main/resources/persistence/networkData/";
+	protected static final String PATH_TO_DATA = "./src/main/resources/persistence/networkData/";
 
 	private String rootDirectory;
 
@@ -86,6 +86,7 @@ public class PersistenceService implements IPersistenceService {
 				net.setPath(path);
 				ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(metadata));
 				oos.writeObject(net);
+				oos.flush();
 				oos.close();
 				networks.put(name, net);
 			}
@@ -102,5 +103,36 @@ public class PersistenceService implements IPersistenceService {
 	public GraphData loadNetwork(String name) throws IOException {
 		Network net = networks.get(name);
 		return net.loadNetwork();
+	}
+
+	/*
+	 * Methods for times
+	 */
+	
+	@Override
+	public void storeTimes(String name, String[] algs, long[] times) throws IOException {
+		if (!networks.containsKey(name)) {
+			throw new IOException("Network not found");
+		}
+		Network net = networks.get(name);
+		net.storeTime(algs, times);
+	}
+
+	@Override
+	public long[] retrieveTimes(String name, String[] algs) throws IOException {
+		if (!networks.containsKey(name)) {
+			throw new IOException("Network not found");
+		}
+		Network net = networks.get(name);
+		return net.retrieveTimes(algs);
+	}
+
+	@Override
+	public void deleteTimes(String name, String[] algs) throws IOException {
+		if (!networks.containsKey(name)) {
+			throw new IOException("Network not found");
+		}
+		Network net = networks.get(name);
+		net.deleteTimes(algs);
 	}
 }

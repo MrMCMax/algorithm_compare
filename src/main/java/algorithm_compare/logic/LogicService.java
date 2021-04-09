@@ -53,15 +53,23 @@ public class LogicService implements ILogicService {
 	@Override
 	public long[] computeNetworkWithAlgorithms(String netName, String[] algNames) throws IOException {
 		long[] results = new long[algNames.length];
+		long[] times = new long[algNames.length];
 		ResidualGraphList g = getGraph(netName);
+		System.out.println("Graph loaded");
 		for (int i = 0; i < algNames.length; i++) {
 			if (algorithmMap.containsKey(algNames[i])) {
-				results[i] = algorithmMap.get(algNames[i]).maxFlow(g);
+				FlowAlgorithm alg = algorithmMap.get(algNames[i]);
+				long t1 = System.currentTimeMillis();
+				results[i] = alg.maxFlow(g);
+				long t2 = System.currentTimeMillis();
+				times[i] = t2 - t1;
+				System.out.println("TIMES FOR NETWORK " + netName + " ON ALGORITHM " + algNames[i] + ": " + times[i]);
 				g.resetFlowsToZero();
 			} else {
 				throw new RuntimeException("This algorithm hasn't been implemented yet: " + algNames[i]);
 			}
 		}
+		storeTimes(netName, algNames, times);
 		return results;
 	}
 	
@@ -95,6 +103,16 @@ public class LogicService implements ILogicService {
 			rg.addEdge(edges[i].v_in, edges[i].v_out, edges[i].capacity);
 		}
 		return rg;
+	}
+
+	@Override
+	public long[] retrieveTimes(String network, String[] algNames) throws IOException {
+		long[] times = persistenceService.retrieveTimes(network, algNames);
+		return times;
+	}
+	
+	private void storeTimes(String network, String[] algNames, long[] times) throws IOException {
+		persistenceService.storeTimes(network, algNames, times);
 	}
 	
 }
