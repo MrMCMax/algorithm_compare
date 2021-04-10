@@ -5,9 +5,12 @@ import java.awt.EventQueue;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.DefaultListModel;
@@ -17,10 +20,6 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
-
-import algorithm_compare.logic.ILogicService;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
 
 public class SelectNetwork extends JFrame {
 	
@@ -63,7 +62,7 @@ public class SelectNetwork extends JFrame {
 				launcher.setVisible(true);
 			}
 		});
-		setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setBounds(100, 100, 450, 300);
 		getContentPane().setLayout(new BorderLayout(0, 0));
 		getContentPane().setLayout(new BorderLayout(0, 0));
@@ -79,7 +78,12 @@ public class SelectNetwork extends JFrame {
 				sa.setMode(mode);
 				sa.setLauncher(launcher);
 				sa.setSelectNetworkWindow(SelectNetwork.this);
-				sa.setNetworks(selectedNetworksList.getSelectedValuesList());
+				int n = selectedNetworksList.getModel().getSize();
+				List<String> nets = new ArrayList<>(n);
+				for (int i = 0; i < n; i++) {
+					nets.add(selectedNetworksList.getModel().getElementAt(i));
+				}
+				sa.setNetworks(nets);
 				sa.load();
 				sa.setVisible(true);
 				SelectNetwork.this.setVisible(false);

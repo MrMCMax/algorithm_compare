@@ -16,6 +16,7 @@ import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
@@ -64,7 +65,7 @@ public class SelectAlgorithm extends JFrame {
 				sn.setVisible(true);
 			}
 		});
-		setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setBounds(100, 100, 450, 300);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -79,14 +80,36 @@ public class SelectAlgorithm extends JFrame {
 		btnGo.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (mode == RUN) {
+					//Get results
+					btnGo.setText("Wait...");
+					int n = selectedAlgorithmsList.getModel().getSize();
+					List<String> algs = new ArrayList<>(n);
+					for (int i = 0; i < n; i++) {
+						algs.add(selectedAlgorithmsList.getModel().getElementAt(i));
+					}
+					Long[][] results = new Long[selectedNetworks.size()][selectedAlgorithmsList.getModel().getSize()];
 					for (int i = 0; i < selectedNetworks.size(); i++) {
-						String[] algs = selectedAlgorithmsList.getSelectedValuesList().toArray(new String[0]);
 						try {
-							long[] res = launcher.logic().computeNetworkWithAlgorithms(selectedNetworks.get(i), algs);
+							//Get results
+							long[] res = launcher.logic().computeNetworkWithAlgorithms(selectedNetworks.get(i), algs.toArray(new String[0]));
+							for (int j = 0; j < res.length; j++)
+								results[i][j] = res[j];
+							
 						} catch (IOException e1) {
 							Launcher.showErrorMessage(SelectAlgorithm.this, e1.getMessage());
 						}
 					}
+					
+					//Open window
+					FlowResults fr = new FlowResults();
+					fr.setAlgorithms(algs);
+					fr.setNetworks(selectedNetworks);
+					fr.setLauncher(launcher);
+					fr.setResults(results);
+					fr.load();
+					btnGo.setText("Go");
+					fr.setVisible(true);
+					SelectAlgorithm.this.setVisible(false);
 				} else if (mode == VISUALISE) {
 					Launcher.showErrorMessage(SelectAlgorithm.this, "Not implemented yet");
 				}

@@ -56,14 +56,11 @@ public class Launcher {
 		frmAlgorithmCompare.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frmAlgorithmCompare.getContentPane().setLayout(new GridLayout(1, 0, 0, 0));
 		
-		System.out.println("AAAAAAA");
-		
 		JButton btnRunAlgorithm = new JButton("Run Algorithm");
 		btnRunAlgorithm.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				SelectNetwork sn = new SelectNetwork();
 				sn.setMode(SelectNetwork.RUN);
-				System.out.println("AAAA");
 				sn.setLauncher(Launcher.this);
 				System.out.println(Launcher.this);
 				sn.load();

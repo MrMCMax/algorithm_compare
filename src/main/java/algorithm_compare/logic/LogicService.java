@@ -55,6 +55,7 @@ public class LogicService implements ILogicService {
 		long[] results = new long[algNames.length];
 		long[] times = new long[algNames.length];
 		ResidualGraphList g = getGraph(netName);
+		g.resetFlowsToZero();
 		System.out.println("Graph loaded");
 		for (int i = 0; i < algNames.length; i++) {
 			if (algorithmMap.containsKey(algNames[i])) {
