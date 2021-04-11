@@ -1,11 +1,14 @@
 package algorithm_compare.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.EventQueue;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.swing.AbstractListModel;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -15,7 +18,13 @@ import javax.swing.table.JTableHeader;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.SwingConstants;
+import javax.swing.UIManager;
 import javax.swing.JTable;
+import javax.swing.ListCellRenderer;
+import javax.swing.ListModel;
+
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
@@ -50,6 +59,7 @@ public class FlowResults extends JFrame {
 	 * Create the frame.
 	 */
 	public FlowResults() {
+		setTitle("Max flow results");
 		addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
@@ -97,19 +107,93 @@ public class FlowResults extends JFrame {
 	
 	public void load() {
 		//Create pretty table with row and column headers
-		
-		//JTable mainTable = new JTable();
-		//JScrollPane scrollPane = new JScrollPane(mainTable);
+		/*
 		RowNumberTable rowTable = new RowNumberTable(resultsTable);
 		scrollPane.setRowHeaderView(rowTable);
 		scrollPane.setCorner(JScrollPane.UPPER_LEFT_CORNER,
 		    rowTable.getTableHeader());
 		
+		
 		//Load data
+		
 		rowTable.setHeaders(selectedNetworks);
-		DefaultTableModel tableModel = new DefaultTableModel(selectedAlgorithms.toArray(new String[0]), selectedNetworks.size());
+		resultsTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+		
+		
+	    */
+		ListModel<String> lm = new AbstractListModel<String>() {
+		      String headers[] = selectedNetworks.toArray(new String[0]);
+
+		      @Override
+		      public int getSize() {
+		        return headers.length;
+		      }
+
+		      @Override
+		      public String getElementAt(int index) {
+		        return headers[index];
+		      }
+		    }; 
+		
+		JList<String> rowHeader = new JList<>(lm);
+		rowHeader.setFixedCellWidth(50);
+		
+		
+		rowHeader.addMouseMotionListener(new MouseMotionListener() {
+	        @Override
+	        public void mouseDragged(MouseEvent e) {
+	            // Set the list cell width as mouse is dragged.
+	            rowHeader.setFixedCellWidth(e.getX());
+	      }
+
+	        @Override
+	        public void mouseMoved(MouseEvent e) {
+	            // If the mouse pointer is near the end region of the 
+	            // list cell then change the mouse cursor to a resize cursor.
+	            if ((e.getX()>= (rowHeader.getWidth() - 5)) && (e.getX()<= rowHeader.getWidth())) {
+	                rowHeader.setCursor(new Cursor(Cursor.E_RESIZE_CURSOR));
+	            } 
+	            // If the mouse pointer is not near the end region of a cell 
+	            // then change the pointer back to its default.
+	            else {
+	                rowHeader.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+	            }
+	        }
+	    });
+		
+		rowHeader.setCellRenderer(new RowHeaderRenderer(resultsTable));
+		
+
+		scrollPane.setRowHeaderView(rowHeader);
+		
+		DefaultTableModel tableModel = new DefaultTableModel(selectedAlgorithms.toArray(new String[0]), 0);
+		
+		
 		for (int i = 0; i < results.length; i++) 
 			tableModel.addRow(results[i]);
 		resultsTable.setModel(tableModel);
 	}
+	
+	
+	class RowHeaderRenderer extends JLabel implements ListCellRenderer<String> {
+
+		  RowHeaderRenderer(JTable table) {
+		    JTableHeader header = table.getTableHeader();
+		    setOpaque(true);
+		    setBorder(UIManager.getBorder("TableHeader.cellBorder"));
+		    setHorizontalAlignment(CENTER);
+		    setForeground(header.getForeground());
+		    setBackground(header.getBackground());
+		    setFont(header.getFont());
+		  }
+
+		  @Override
+		  public Component getListCellRendererComponent(JList<? extends String> list, String value,
+		      int index, boolean isSelected, boolean cellHasFocus) {
+		    setText((value == null) ? "" : value.toString());
+		    return this;
+		  }
+
+	}
+
 }

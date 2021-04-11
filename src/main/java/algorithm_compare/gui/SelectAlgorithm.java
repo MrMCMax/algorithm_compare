@@ -35,9 +35,12 @@ public class SelectAlgorithm extends JFrame {
 	private Launcher launcher;
 	private SelectNetwork sn;
 	private List<String> selectedNetworks;
+	private List<String> selectedAlgorithms;
+	private Long[][] results;
 
 	private JList<String> algorithmList;
 	private JList<String> selectedAlgorithmsList;
+	private JButton btnGo;
 
 	/**
 	 * Launch the application.
@@ -59,6 +62,7 @@ public class SelectAlgorithm extends JFrame {
 	 * Create the frame.
 	 */
 	public SelectAlgorithm() {
+		setTitle("Select Algorithms");
 		addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
@@ -76,42 +80,23 @@ public class SelectAlgorithm extends JFrame {
 		lblSelectAlgorithms.setHorizontalAlignment(SwingConstants.CENTER);
 		contentPane.add(lblSelectAlgorithms, BorderLayout.NORTH);
 
-		JButton btnGo = new JButton("Go");
+		btnGo = new JButton("Go");
 		btnGo.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+
+				//Set fields
+				btnGo.setText("Wait...");
+				int n = selectedAlgorithmsList.getModel().getSize();
+				selectedAlgorithms = new ArrayList<>(n);
+				for (int i = 0; i < n; i++) {
+					selectedAlgorithms.add(selectedAlgorithmsList.getModel().getElementAt(i));
+				}
+				results = new Long[selectedNetworks.size()][selectedAlgorithmsList.getModel().getSize()];
+				
 				if (mode == RUN) {
-					//Get results
-					btnGo.setText("Wait...");
-					int n = selectedAlgorithmsList.getModel().getSize();
-					List<String> algs = new ArrayList<>(n);
-					for (int i = 0; i < n; i++) {
-						algs.add(selectedAlgorithmsList.getModel().getElementAt(i));
-					}
-					Long[][] results = new Long[selectedNetworks.size()][selectedAlgorithmsList.getModel().getSize()];
-					for (int i = 0; i < selectedNetworks.size(); i++) {
-						try {
-							//Get results
-							long[] res = launcher.logic().computeNetworkWithAlgorithms(selectedNetworks.get(i), algs.toArray(new String[0]));
-							for (int j = 0; j < res.length; j++)
-								results[i][j] = res[j];
-							
-						} catch (IOException e1) {
-							Launcher.showErrorMessage(SelectAlgorithm.this, e1.getMessage());
-						}
-					}
-					
-					//Open window
-					FlowResults fr = new FlowResults();
-					fr.setAlgorithms(algs);
-					fr.setNetworks(selectedNetworks);
-					fr.setLauncher(launcher);
-					fr.setResults(results);
-					fr.load();
-					btnGo.setText("Go");
-					fr.setVisible(true);
-					SelectAlgorithm.this.setVisible(false);
+					run();
 				} else if (mode == VISUALISE) {
-					Launcher.showErrorMessage(SelectAlgorithm.this, "Not implemented yet");
+					visualise();
 				}
 			}
 		});
@@ -207,5 +192,52 @@ public class SelectAlgorithm extends JFrame {
 		algorithmList.setModel(model);
 		DefaultListModel<String> model2 = new DefaultListModel<String>();
 		selectedAlgorithmsList.setModel(model2);
+	}
+	
+	private void run() {
+		//Get results
+		for (int i = 0; i < selectedNetworks.size(); i++) {
+			try {
+				//Get results
+				long[] res = launcher.logic().computeNetworkWithAlgorithms(selectedNetworks.get(i), 
+						selectedAlgorithms.toArray(new String[0]));
+				for (int j = 0; j < res.length; j++)
+					results[i][j] = res[j];
+				
+			} catch (IOException e1) {
+				Launcher.showErrorMessage(SelectAlgorithm.this, e1.getMessage());
+			}
+		}
+		
+		//Open window
+		FlowResults fr = new FlowResults();
+		fr.setAlgorithms(selectedAlgorithms);
+		fr.setNetworks(selectedNetworks);
+		fr.setLauncher(launcher);
+		fr.setResults(results);
+		fr.load();
+		btnGo.setText("Go");
+		fr.setVisible(true);
+		SelectAlgorithm.this.setVisible(false);
+	}
+	
+	private void visualise() {
+		//Get times
+		for (int i = 0; i < selectedNetworks.size(); i++) {
+			try {
+				long[] res = launcher.logic().retrieveTimes(selectedNetworks.get(i), selectedAlgorithms.toArray(new String[0]));
+				for (int j = 0; j < res.length; j++) 
+					results[i][j] = res[j];
+			} catch (IOException e) {
+				Launcher.showErrorMessage(SelectAlgorithm.this, e.getMessage());
+			}
+		}
+		//Show window
+		Plots pl = new Plots();
+		pl.setData(selectedNetworks, selectedAlgorithms, results);
+		pl.setLauncher(launcher);
+		pl.load();
+		pl.setVisible(true);
+		SelectAlgorithm.this.setVisible(false);
 	}
 }

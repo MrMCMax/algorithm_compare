@@ -96,7 +96,12 @@ public class RowNumberTable extends JTable
 	@Override
 	public Object getValueAt(int row, int column)
 	{
-		return headers == null ? Integer.toString(row + 1) : headers.get(row); 
+		if (headers == null) {
+			return Integer.toString(row + 1);
+		} else {
+			return headers.get(row);
+		}
+		//return headers == null ? Integer.toString(row + 1) : headers.get(row); 
 	}
 
 	/*
