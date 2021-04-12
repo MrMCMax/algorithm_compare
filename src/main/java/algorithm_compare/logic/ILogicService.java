@@ -17,4 +17,6 @@ public interface ILogicService {
 	long[] computeNetworkWithAlgorithms(String netName, String[] algNames) throws IOException;
 
 	long[] retrieveTimes(String network, String[] algNames) throws IOException;
+	
+	int getNetworkNVertices(String netName) throws IOException;
 }

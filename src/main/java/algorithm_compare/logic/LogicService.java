@@ -115,5 +115,11 @@ public class LogicService implements ILogicService {
 	private void storeTimes(String network, String[] algNames, long[] times) throws IOException {
 		persistenceService.storeTimes(network, algNames, times);
 	}
+
+	@Override
+	public int getNetworkNVertices(String netName) throws IOException {
+		ResidualGraphList graph = getGraph(netName);
+		return graph.getNumVertices();
+	}
 	
 }

@@ -44,7 +44,7 @@ public class SelectAlgorithm extends JFrame {
 
 	/**
 	 * Launch the application.
-	 */
+	 */ /*
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
@@ -56,7 +56,7 @@ public class SelectAlgorithm extends JFrame {
 				}
 			}
 		});
-	}
+	} */
 
 	/**
 	 * Create the frame.
@@ -226,8 +226,13 @@ public class SelectAlgorithm extends JFrame {
 		for (int i = 0; i < selectedNetworks.size(); i++) {
 			try {
 				long[] res = launcher.logic().retrieveTimes(selectedNetworks.get(i), selectedAlgorithms.toArray(new String[0]));
-				for (int j = 0; j < res.length; j++) 
+				for (int j = 0; j < res.length; j++) {
+					if (res[j] == -1) {
+						Launcher.showErrorMessage(this, "Value not computed for network "
+								+ selectedNetworks.get(i) + " and algorithm " + selectedAlgorithms.get(j) + "");
+					}
 					results[i][j] = res[j];
+				}
 			} catch (IOException e) {
 				Launcher.showErrorMessage(SelectAlgorithm.this, e.getMessage());
 			}
@@ -236,7 +241,11 @@ public class SelectAlgorithm extends JFrame {
 		Plots pl = new Plots();
 		pl.setData(selectedNetworks, selectedAlgorithms, results);
 		pl.setLauncher(launcher);
-		pl.load();
+		try {
+			pl.printPython();
+		} catch (IOException e) {
+			Launcher.showErrorMessage(this, e.getMessage());
+		}
 		pl.setVisible(true);
 		SelectAlgorithm.this.setVisible(false);
 	}
