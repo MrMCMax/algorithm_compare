@@ -1,4 +1,4 @@
-package algorithm_compare.logic;
+package algorithm_compare.logic.algorithms;
 
 import mrmcmax.data_structures.graphs.ResidualGraphList;
 
