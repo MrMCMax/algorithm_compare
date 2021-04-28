@@ -1,10 +1,10 @@
 package algorithm_compare.logic.algorithms;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Queue;
 
 import mrmcmax.data_structures.graphs.OneEndpointEdge;
 import mrmcmax.data_structures.graphs.ResidualGraphList;
@@ -21,6 +21,10 @@ public class FirstPushRelabel extends FlowAlgorithm {
 	 * 
 	 */
 	
+	public FirstPushRelabel(String string) {
+		super(string);
+	}
+
 	protected ResidualGraphList g;
 	protected int s;
 	protected int t;
@@ -74,7 +78,7 @@ public class FirstPushRelabel extends FlowAlgorithm {
 			g.getAdjacencyList(e.endVertex).get(e.reverseEdgeIndex).decrement(e.capacity);
 			if (e.endVertex != t) {
 				excesses.set(e.endVertex, e.capacity); //Excesses start at 0 in this implementation
-				verticesWithExcess.add(e.endVertex);
+				addVertexWithExcess(e.endVertex);
 			}
 		}
 		//No need to change current edge of s because it will return to the start.
@@ -84,7 +88,7 @@ public class FirstPushRelabel extends FlowAlgorithm {
 		//Go
 		long maxFlow = 0;
 		while (!verticesWithExcess.isEmpty()) {
-			int v = verticesWithExcess.iterator().next();
+			int v = getVertexWithExcess();
 			List<OneEndpointEdge> adj = g.getAdjacencyList(v);
 			int e = currentEdge.get(v);
 			int v_h = heights.get(v);
@@ -129,11 +133,11 @@ public class FirstPushRelabel extends FlowAlgorithm {
 		int newExcess = excesses.get(vertex) - flow;
 		excesses.set(vertex, newExcess);
 		if (newExcess == 0) {
-			verticesWithExcess.remove(vertex);
+			removeVertexWithExcess(vertex);
 		}
 		if (e.endVertex != t && e.endVertex != s) {
 			excesses.set(e.endVertex, excesses.get(e.endVertex) + flow);
-			verticesWithExcess.add(e.endVertex); //Lemma discovered with Inge: always will have excess
+			addVertexWithExcess(e.endVertex); //Lemma discovered with Inge: always will have excess
 		}
 	}
 	
@@ -146,5 +150,17 @@ public class FirstPushRelabel extends FlowAlgorithm {
 		heights.set(vertex, actualHeight + 1);
 		if (actualHeight > n - 1) {
 		}
+	}
+	
+	protected int getVertexWithExcess() {
+		return verticesWithExcess.iterator().next();
+	}
+	
+	protected void addVertexWithExcess(int v) {
+		verticesWithExcess.add(v);
+	}
+	
+	protected void removeVertexWithExcess(int v) {
+		verticesWithExcess.remove(v);
 	}
 }
