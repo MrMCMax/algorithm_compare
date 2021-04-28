@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import algorithm_compare.logic.algorithms.DinicsAlgorithm;
 import algorithm_compare.logic.algorithms.EdmondsKarp;
+import algorithm_compare.logic.algorithms.FirstPushRelabel;
 import algorithm_compare.logic.algorithms.FlowAlgorithm;
 import algorithm_compare.logic.algorithms.ScalingEdmondsKarp;
 import algorithm_compare.persistence.GraphData;
@@ -35,9 +36,11 @@ public class LogicService implements ILogicService {
 		FlowAlgorithm edmondsKarp = new EdmondsKarp();
 		FlowAlgorithm scalingEdmondsKarp = new ScalingEdmondsKarp();
 		FlowAlgorithm dinicsAlgorithm = new DinicsAlgorithm();
+		FlowAlgorithm firstPushRelabel = new FirstPushRelabel();
 		algorithmMap.put(edmondsKarp.getName(), edmondsKarp);
 		algorithmMap.put(scalingEdmondsKarp.getName(), scalingEdmondsKarp);
 		algorithmMap.put(dinicsAlgorithm.getName(), dinicsAlgorithm);
+		algorithmMap.put(firstPushRelabel.getName(), firstPushRelabel);
 	}
 	
 	public LogicService(IPersistenceService persistenceService) {
