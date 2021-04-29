@@ -34,11 +34,19 @@ public class LogicService implements ILogicService {
 		FlowAlgorithm dinicsAlgorithm = new DinicsAlgorithm();
 		FlowAlgorithm firstPushRelabel = new FirstPushRelabel();
 		FlowAlgorithm secondPushRelabel = new SecondPushRelabel();
+		FlowAlgorithm fifoPushRelabel1 = new FIFOPushRelabel1();
+		FlowAlgorithm fifoPushRelabel2 = new FIFOPushRelabel2();
+		FlowAlgorithm highestVertex1 = new HighestVertex1();
+		FlowAlgorithm fifoPushRelabel3 = new FIFOPushRelabel3();
 		algorithmMap.put(edmondsKarp.getName(), edmondsKarp);
 		algorithmMap.put(scalingEdmondsKarp.getName(), scalingEdmondsKarp);
 		algorithmMap.put(dinicsAlgorithm.getName(), dinicsAlgorithm);
 		algorithmMap.put(firstPushRelabel.getName(), firstPushRelabel);
 		algorithmMap.put(secondPushRelabel.getName(), secondPushRelabel);
+		algorithmMap.put(fifoPushRelabel1.getName(), fifoPushRelabel1);
+		algorithmMap.put(fifoPushRelabel2.getName(), fifoPushRelabel2);
+		algorithmMap.put(highestVertex1.getName(), highestVertex1);
+		algorithmMap.put(fifoPushRelabel3.getName(), fifoPushRelabel3);
 	}
 	
 	public LogicService(IPersistenceService persistenceService) {
