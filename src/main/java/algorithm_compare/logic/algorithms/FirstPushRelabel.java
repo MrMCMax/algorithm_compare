@@ -31,8 +31,9 @@ public class FirstPushRelabel extends FlowAlgorithm {
 	protected List<Integer> heights;
 	protected List<Integer> excesses;
 	protected List<Integer> currentEdge;
-	protected Collection<Integer> verticesWithExcess;
 	protected int n;
+	
+	protected Collection<Integer> verticesWithExcess;
 
 	/**
 	 * Precondition: all flows are zero
@@ -87,7 +88,7 @@ public class FirstPushRelabel extends FlowAlgorithm {
 	protected long algorithm() {
 		//Go
 		long maxFlow = 0;
-		while (!verticesWithExcess.isEmpty()) {
+		while (!thereAreVerticesWithExcess()) {
 			int v = getVertexWithExcess();
 			List<OneEndpointEdge> adj = g.getAdjacencyList(v);
 			int e = currentEdge.get(v);
@@ -162,5 +163,9 @@ public class FirstPushRelabel extends FlowAlgorithm {
 	
 	protected void removeVertexWithExcess(int v) {
 		verticesWithExcess.remove(v);
+	}
+	
+	protected boolean thereAreVerticesWithExcess() {
+		return verticesWithExcess.isEmpty();
 	}
 }

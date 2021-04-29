@@ -1,26 +1,22 @@
 package algorithm_compare.logic.algorithms;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 
 import mrmcmax.data_structures.graphs.OneEndpointEdge;
 import mrmcmax.data_structures.graphs.ResidualGraphList;
 
-public class FIFOPushRelabel1 extends FlowAlgorithm {
-
-	public FIFOPushRelabel1() {
-		super("FIFOPushRelabel1");
+public class HighestVertex1 extends FIFOPushRelabel2 {
+	public HighestVertex1() {
+		super("HighestVertex1");
 	}
 
-	public FIFOPushRelabel1(String string) {
-		super(string);
-	}
-	
 	protected ResidualGraphList g;
 	protected int s;
 	protected int t;
-	protected List<Integer> heights;
+	protected List<HashSet<Integer>> heights;
 	protected List<Integer> excesses;
 	protected List<Integer> currentEdge;
 	protected int n;
@@ -47,16 +43,14 @@ public class FIFOPushRelabel1 extends FlowAlgorithm {
 
 	public void initDataStructures() {
 		excesses = new ArrayList<Integer>(n);
-		heights = new ArrayList<Integer>(n);
+		heights = new ArrayList<HashSet<Integer>>(2*n - 1);
 		currentEdge = new ArrayList<Integer>(n);
 		FIFOQueue = new LinkedList<Integer>();
-		// Set excesses, heights and current edges to default values
+		// Set excesses and current edges to default values
 		for (int i = 0; i < n; i++) {
 			excesses.add(0);
-			heights.add(0);
 			currentEdge.add(0);
 		}
-		heights.set(s, n);
 	}
 	
 	protected void initAlgorithm() {
@@ -82,18 +76,20 @@ public class FIFOPushRelabel1 extends FlowAlgorithm {
 			int v = getVertexWithExcess(); // Polls
 			List<OneEndpointEdge> adj = g.getAdjacencyList(v);
 			int e = currentEdge.get(v);
-			int v_h = heights.get(v);
+			//int v_h = heights.get(v);
 			//While there's no relabel and there's still excess
-			while (v_h == heights.get(v) && excesses.get(v) > 0) {
+			//while (v_h == heights.get(v) && excesses.get(v) > 0) {
 				//Search for an edge to push
 				boolean eligible = false;
 				while (e < adj.size() && !eligible) {
 					OneEndpointEdge edge = adj.get(e);
+					/*
 					if (heights.get(edge.endVertex) >= v_h || edge.remainingCapacity() <= 0) {
 						e++;
 					} else {
 						eligible = true;
 					}
+					*/
 				}
 				if (eligible) {
 					currentEdge.set(v, e);
@@ -103,13 +99,18 @@ public class FIFOPushRelabel1 extends FlowAlgorithm {
 					relabel(v);
 					currentEdge.set(v, 0);
 				}
-			}
+			//}
 			if (excesses.get(v) > 0) {
 				addVertexWithExcess(v);
 			}
 		}
 		// That's it. Calculate the value of the flow.
-		return calculateMaxFlow();
+		List<OneEndpointEdge> adjS = g.getAdjacencyList(s);
+		for (int i = 0; i < adjS.size(); i++) {
+			if (adjS.get(i).capacity > 0)
+				maxFlow += adjS.get(i).flow;
+		}
+		return maxFlow;
 	}
 	
 	/**
@@ -135,8 +136,8 @@ public class FIFOPushRelabel1 extends FlowAlgorithm {
 	 * @param vertex vertex to relabel.
 	 */
 	protected void relabel(int vertex) {
-		int actualHeight = heights.get(vertex);
-		heights.set(vertex, actualHeight + 1);
+		//int actualHeight = heights.get(vertex);
+		//heights.set(vertex, actualHeight + 1);
 	}
 
 	protected int getVertexWithExcess() {
@@ -149,16 +150,5 @@ public class FIFOPushRelabel1 extends FlowAlgorithm {
 	
 	protected boolean thereAreVerticesWithExcess() {
 		return FIFOQueue.isEmpty();
-	}
-	
-	protected long calculateMaxFlow() {
-		long maxFlow = 0;
-		// That's it. Calculate the value of the flow.
-		List<OneEndpointEdge> adjS = g.getAdjacencyList(s);
-		for (int i = 0; i < adjS.size(); i++) {
-			if (adjS.get(i).capacity > 0)
-				maxFlow += adjS.get(i).flow;
-		}
-		return maxFlow;
 	}
 }
