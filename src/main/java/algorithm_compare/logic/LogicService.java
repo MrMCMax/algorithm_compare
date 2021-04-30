@@ -1,12 +1,29 @@
 package algorithm_compare.logic;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-import algorithm_compare.logic.algorithms.*;
+import org.reflections.Reflections;
+
+import algorithm_compare.logic.algorithms.DinicsAlgorithm;
+import algorithm_compare.logic.algorithms.EdmondsKarp;
+import algorithm_compare.logic.algorithms.FIFOPushRelabel1;
+import algorithm_compare.logic.algorithms.FIFOPushRelabel2;
+import algorithm_compare.logic.algorithms.FIFOPushRelabel3;
+import algorithm_compare.logic.algorithms.FIFOPushRelabelVertex;
+import algorithm_compare.logic.algorithms.FirstPushRelabel;
+import algorithm_compare.logic.algorithms.FlowAlgorithm;
+import algorithm_compare.logic.algorithms.HighestVertex1;
+import algorithm_compare.logic.algorithms.NaivePushRelabel;
+import algorithm_compare.logic.algorithms.ScalingEdmondsKarp;
+import algorithm_compare.logic.algorithms.SecondPushRelabel;
 import algorithm_compare.persistence.GraphData;
 import algorithm_compare.persistence.GraphData.TwoEndpointEdge;
 import algorithm_compare.persistence.IPersistenceService;
@@ -29,6 +46,7 @@ public class LogicService implements ILogicService {
 		this.persistenceService = new PersistenceService();
 		loadedGraphs = new HashMap<>();
 		algorithmMap = new HashMap<>();
+		/*
 		FlowAlgorithm edmondsKarp = new EdmondsKarp();
 		FlowAlgorithm scalingEdmondsKarp = new ScalingEdmondsKarp();
 		FlowAlgorithm dinicsAlgorithm = new DinicsAlgorithm();
@@ -51,6 +69,33 @@ public class LogicService implements ILogicService {
 		algorithmMap.put(fifoPushRelabel3.getName(), fifoPushRelabel3);
 		algorithmMap.put(fifoPushRelabelVertex.getName(), fifoPushRelabelVertex);
 		algorithmMap.put(naivePushRelabel.getName(), naivePushRelabel);
+		*/
+		Reflections refls = new Reflections("algorithm_compare.logic.algorithms");
+		Set<Class<? extends FlowAlgorithm>> subTypes = refls.getSubTypesOf(FlowAlgorithm.class);
+		Iterator<Class<? extends FlowAlgorithm>> it = subTypes.iterator();
+		while (it.hasNext()) {
+			Class<? extends FlowAlgorithm> algClass = it.next();
+			try {
+				Constructor<? extends FlowAlgorithm> ctor = algClass.getConstructor();
+				FlowAlgorithm alg = ctor.newInstance();
+				algorithmMap.put(alg.getName(), alg);
+			} catch (NoSuchMethodException | SecurityException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InstantiationException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalArgumentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InvocationTargetException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 	
 	public LogicService(IPersistenceService persistenceService) {
