@@ -39,6 +39,7 @@ public class LogicService implements ILogicService {
 		FlowAlgorithm highestVertex1 = new HighestVertex1();
 		FlowAlgorithm fifoPushRelabel3 = new FIFOPushRelabel3();
 		FlowAlgorithm fifoPushRelabelVertex = new FIFOPushRelabelVertex();
+		FlowAlgorithm naivePushRelabel = new NaivePushRelabel();
 		algorithmMap.put(edmondsKarp.getName(), edmondsKarp);
 		algorithmMap.put(scalingEdmondsKarp.getName(), scalingEdmondsKarp);
 		algorithmMap.put(dinicsAlgorithm.getName(), dinicsAlgorithm);
@@ -49,6 +50,7 @@ public class LogicService implements ILogicService {
 		algorithmMap.put(highestVertex1.getName(), highestVertex1);
 		algorithmMap.put(fifoPushRelabel3.getName(), fifoPushRelabel3);
 		algorithmMap.put(fifoPushRelabelVertex.getName(), fifoPushRelabelVertex);
+		algorithmMap.put(naivePushRelabel.getName(), naivePushRelabel);
 	}
 	
 	public LogicService(IPersistenceService persistenceService) {
