@@ -39,6 +39,11 @@ public class ComputeAlgorithmSteps {
 		}
 	}
 	
+	@When("We run the algorithms on the network")
+	public void weRunTheAlgorithmsOnTheNetwork() {
+		weRunTheAlgorithmOnTheNetworkTimes(1);
+	}
+	
 	@Then("we get the result {long} on all of them")
 	public void weGetTheResultOnAllOfThem(Long maxFlow) {
 		for (int i = 0; i < results.length; i++) {

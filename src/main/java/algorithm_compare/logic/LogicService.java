@@ -106,12 +106,16 @@ public class LogicService implements ILogicService {
 	
 	@Override
 	public List<String> getListOfAlgorithms() {
-		return algorithmMap.keySet().stream().collect(Collectors.toList());
+		List<String> unsorted = algorithmMap.keySet().stream().collect(Collectors.toList());
+		unsorted.sort((s1, s2) -> s1.compareTo(s2));
+		return unsorted;
 	}
 	
 	@Override
 	public List<String> getListOfNetworks() throws IOException {
-		return persistenceService.getAllNetworkNames();
+		List<String> unsorted = persistenceService.getAllNetworkNames();
+		unsorted.sort((s1, s2) -> s1.compareTo(s2));
+		return unsorted;
 	}
 
 	@Override
