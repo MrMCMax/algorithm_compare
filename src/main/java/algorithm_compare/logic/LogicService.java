@@ -6,9 +6,11 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.LongSummaryStatistics;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.LongStream;
 
 import org.reflections.Reflections;
 
@@ -114,24 +116,34 @@ public class LogicService implements ILogicService {
 
 	@Override
 	public long[] computeNetworkWithAlgorithms(String netName, String[] algNames) throws IOException {
+		return computeNetworkWithAlgorithms(netName, algNames, 1);
+	}
+	
+	@Override
+	public long[] computeNetworkWithAlgorithms(String netName, String[] algNames, int repetitions) throws IOException {
 		long[] results = new long[algNames.length];
 		long[] times = new long[algNames.length];
+		long[] flowTimes = new long[repetitions]; //Will be reused in each run
 		ResidualGraphList g = getGraph(netName);
-		g.resetFlowsToZero();
 		System.out.println("Graph loaded");
 		for (int i = 0; i < algNames.length; i++) {
 			if (algorithmMap.containsKey(algNames[i])) {
 				FlowAlgorithm alg = algorithmMap.get(algNames[i]);
-				long t1 = System.currentTimeMillis();
-				results[i] = alg.maxFlow(g);
-				long t2 = System.currentTimeMillis();
-				times[i] = t2 - t1;
+				//Loop for repetitions
+				for (int k = 0; k < repetitions; k++) {
+					g.resetFlowsToZero();
+					long t1 = System.currentTimeMillis();
+					results[i] = alg.maxFlow(g);
+					long t2 = System.currentTimeMillis();
+					flowTimes[k] = t2 - t1;
+				}
+				times[i] = (long) Math.ceil(getAndPrintStats(flowTimes));
 				System.out.println("TIMES FOR NETWORK " + netName + " ON ALGORITHM " + algNames[i] + ": " + times[i]);
-				g.resetFlowsToZero();
 			} else {
 				throw new RuntimeException("This algorithm hasn't been implemented yet: " + algNames[i]);
 			}
 		}
+		g.resetFlowsToZero();
 		storeTimes(netName, algNames, times);
 		return results;
 	}
@@ -184,4 +196,23 @@ public class LogicService implements ILogicService {
 		return graph.getNumVertices();
 	}
 	
+	public static double getAndPrintStats(long[] data) {
+		LongSummaryStatistics stats = LongStream.of(data).summaryStatistics();
+		System.out.println("Max: " + stats.getMax());
+		System.out.println("Min: " + stats.getMin());
+		double average = stats.getAverage();
+		System.out.println("Average: " + average);
+		System.out.println("Standard deviation: " + std(data, stats));
+		return average;
+	}	
+	
+	public static double std(long[] data, LongSummaryStatistics stats) {
+		double sum = 0, diff = 0;
+		for (long d : data) {
+			diff = d - stats.getAverage();
+			sum += diff * diff;
+		}
+		double factor = 1.0 / stats.getCount();
+		return Math.sqrt(factor * sum);
+	}
 }

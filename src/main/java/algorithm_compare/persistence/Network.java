@@ -14,6 +14,8 @@ public class Network implements Serializable {
 	private String name;
 	private transient String path;
 	private Map<String, Long> recordedTimes;
+	
+	public static boolean DEBUG = false;
 
 	private static final long serialVersionUID = 1L;
 
@@ -115,7 +117,8 @@ public class Network implements Serializable {
 	 */
 	public void storeTime(String[] algorithms, long[] times) throws IOException {
 		for (int i = 0; i < algorithms.length; i++) {
-			System.out.println("STORING TIME " + times[i] + " FOR ALGORITHM " + algorithms[i] + " ON NETWORK " + this.name);
+			if (DEBUG)
+				System.out.println("STORING TIME " + times[i] + " FOR ALGORITHM " + algorithms[i] + " ON NETWORK " + this.name);
 			recordedTimes.put(algorithms[i], times[i]);
 		}
 		storeObject();
@@ -126,7 +129,8 @@ public class Network implements Serializable {
 	 * @throws IOException
 	 */
 	private void storeObject() throws IOException {
-		System.out.println("STORING OBJECT: " + this.name);
+		if (DEBUG)
+			System.out.println("STORING OBJECT: " + this.name);
 		String path = PersistenceService.PATH_TO_DATA + name;
 		ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(path));
 		oos.writeObject(this);
@@ -137,9 +141,11 @@ public class Network implements Serializable {
 	public long[] retrieveTimes(String[] algs) {
 		long[] res = new long[algs.length];
 		for (int i = 0; i < algs.length; i++) {
-			System.out.println("RETRIEVING TIME FOR NETWORK " + name + " ON ALGORITHM " + algs[i]);
+			if (DEBUG)
+				System.out.println("RETRIEVING TIME FOR NETWORK " + name + " ON ALGORITHM " + algs[i]);
 			res[i] = recordedTimes.getOrDefault(algs[i], (long)-1);
-			System.out.println("TIME " + res[i]);
+			if (DEBUG)
+				System.out.println("TIME " + res[i]);
 		}
 		return res;
 	}

@@ -1,19 +1,18 @@
 package algorithm_compare.logic.algorithms;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Stack;
 
 import mrmcmax.data_structures.graphs.OneEndpointEdge;
 import mrmcmax.data_structures.graphs.ResidualGraphList;
 
-public class HighestVertex1 extends FlowAlgorithm {
+public class HighestVertex2 extends FlowAlgorithm {
 
-	public HighestVertex1() {
-		super("HighestVertex1");
+	public HighestVertex2() {
+		super("HighestVertex2");
 	}
 
 	protected ResidualGraphList g;
@@ -23,9 +22,10 @@ public class HighestVertex1 extends FlowAlgorithm {
 	protected ArrayList<Vertex> vertices;
 	protected LinkedList<Vertex>[] heights;
 	protected LinkedList<Integer> b;
+	protected Vertex candidate;
 	//For debugging purposes
-	protected LinkedList<Integer> chosenVertices;
-	protected LinkedList<Integer> chosenHeights;
+	private LinkedList<Integer> chosenVertices;
+	private LinkedList<Integer> chosenHeights;
 
 	protected class Vertex {
 		protected int v;
@@ -123,6 +123,7 @@ public class HighestVertex1 extends FlowAlgorithm {
 			vertices.add(new Vertex(i));
 		}
 		vertices.get(s).increaseHeightBy(n);
+		candidate = null;
 		//For debugging purposes
 		chosenVertices = new LinkedList<Integer>();
 		chosenHeights = new LinkedList<Integer>();
@@ -149,8 +150,13 @@ public class HighestVertex1 extends FlowAlgorithm {
 	protected long algorithm() {
 		// Go
 		long maxFlow = 0;
-		while (thereAreVerticesWithExcess()) {
-			Vertex vertex = getVertexWithExcess(); // Polls
+		while (candidate != null || thereAreVerticesWithExcess()) {
+			Vertex vertex = null;
+			if (candidate != null) {
+				vertex = candidate;
+			} else {
+				vertex = getVertexWithExcess(); // Polls
+			}
 			//For debugging purposes
 			chosenVertices.add(vertex.v);
 			chosenHeights.add(vertex.height);
@@ -181,8 +187,11 @@ public class HighestVertex1 extends FlowAlgorithm {
 					relabel = true;
 				}
 			}
-			if (vertex.excess > 0) {
-				addVertexWithExcess(vertex);
+			if (vertex.isActive()) {
+				//addVertexWithExcess(vertex);
+				candidate = vertex;
+			} else {
+				candidate = null;
 			}
 		}
 		// That's it. Calculate the value of the flow.
@@ -247,12 +256,12 @@ public class HighestVertex1 extends FlowAlgorithm {
 		}
 		//For debugging purposes
 		StringBuilder sb = new StringBuilder();
-		sb.append("HighestVertex1:\n");
+		sb.append("HighestVertex2:\n");
 		sb.append("Vertices: \n");
 		sb.append(chosenVertices.toString()).append("\n");
 		sb.append("Heights: \n");
 		sb.append(chosenHeights.toString()).append("\n");
-		writeToFile("HighestVertex1Stats.txt", sb.toString());
+		HighestVertex1.writeToFile("HighestVertex2Stats.txt", sb.toString());
 		//End debug
 		return maxFlow;
 	}
@@ -283,17 +292,5 @@ public class HighestVertex1 extends FlowAlgorithm {
 	
 	protected void relabelBy1(Vertex vertex) {
 		vertex.height+=1;
-	}
-	
-	public static void writeToFile(String filename, String text) {
-		try {
-			PrintWriter out = new PrintWriter(new File(filename));
-			out.print(text);
-			out.flush();
-			out.close();
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 }

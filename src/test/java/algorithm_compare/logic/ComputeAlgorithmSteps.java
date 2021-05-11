@@ -17,6 +17,7 @@ public class ComputeAlgorithmSteps {
 	String network;
 	String[] names;
 	long[] results;
+	static final int N_REPETITIONS = 100;
 	
 	@Given("the test network {string}")
 	public void theTestNetwork(String net) {
@@ -38,19 +39,6 @@ public class ComputeAlgorithmSteps {
 		}
 	}
 	
-	@When("We run the algorithms on the network")
-	public void weRunTheAlgorithmsOnTheNetwork() {
-		try {
-			results = logicService.computeNetworkWithAlgorithms(network, names);
-			if (results == null) {
-				fail("No results given");
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
-	
 	@Then("we get the result {long} on all of them")
 	public void weGetTheResultOnAllOfThem(Long maxFlow) {
 		for (int i = 0; i < results.length; i++) {
@@ -64,6 +52,41 @@ public class ComputeAlgorithmSteps {
 		try {
 			long[] times = logicService.retrieveTimes(network, names);
 			System.out.println(Arrays.toString(times));
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+	
+	/*
+	 * RUNTIME TESTS
+	 */
+	
+	@Given("the algorithm {string}")
+	public void theAlgorithm(String algName) {
+		names = new String[] {algName};
+	}
+
+	@When("We run the algorithm on the network multiple times")
+	public void weRunTheAlgorithmOnTheNetworkMultipleTimes() {
+		try {
+			results = logicService.computeNetworkWithAlgorithms(network, names, N_REPETITIONS);
+			if (results == null) {
+				fail("No results given");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+	
+	@When("We run the algorithm on the network {int} times")
+	public void weRunTheAlgorithmOnTheNetworkTimes(Integer nreps) {
+		try {
+			results = logicService.computeNetworkWithAlgorithms(network, names, nreps);
+			if (results == null) {
+				fail("No results given");
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			fail(e.getMessage());
