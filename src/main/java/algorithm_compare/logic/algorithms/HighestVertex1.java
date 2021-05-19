@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import algorithm_compare.logic.algorithms.HighestVertex2.Vertex;
 import mrmcmax.data_structures.graphs.OneEndpointEdge;
 import mrmcmax.data_structures.graphs.ResidualGraphList;
 
@@ -26,6 +27,7 @@ public class HighestVertex1 extends FlowAlgorithm {
 	//For debugging purposes
 	protected LinkedList<Integer> chosenVertices;
 	protected LinkedList<Integer> chosenHeights;
+	protected int iteration = 0;
 
 	protected class Vertex {
 		protected int v;
@@ -150,7 +152,29 @@ public class HighestVertex1 extends FlowAlgorithm {
 		// Go
 		long maxFlow = 0;
 		while (thereAreVerticesWithExcess()) {
+			if (DEBUG) {
+				iteration++;
+				if (iteration >= 29722) {
+					System.out.println("Its gonna break");
+				}
+			}
 			Vertex vertex = getVertexWithExcess(); // Polls
+			if (DEBUG) {
+				int height = 0;
+				Vertex maxVertex = null;
+				for (int i = 0; i < vertices.size(); i++) {
+					if (i == s || i == t) continue;
+					if (vertices.get(i).isActive() && vertices.get(i).height > height) {
+						height = Math.max(vertices.get(i).height, height);
+						maxVertex = vertices.get(i);
+					}
+				}
+				if (vertex.height < height) {
+					System.out.println("Iteration " + iteration + ":");
+					throw new RuntimeException("Candidate vertex " + vertex.v + " at height " + vertex.height + " was selected,"
+							+ "even though the highest height is of the vertex " + maxVertex.v + " at height " + maxVertex.height);
+				}
+			}
 			//For debugging purposes
 			chosenVertices.add(vertex.v);
 			chosenHeights.add(vertex.height);

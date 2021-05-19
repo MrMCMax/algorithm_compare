@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.Arrays;
 
 import algorithm_compare.TestUtils;
+import algorithm_compare.logic.algorithms.FlowAlgorithm;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
@@ -96,6 +97,16 @@ public class ComputeAlgorithmSteps {
 			e.printStackTrace();
 			fail(e.getMessage());
 		}
+	}
+	
+	@Given("the debug mode is turned on")
+	public void theDebugModeIsTurnedOn() {
+		FlowAlgorithm.DEBUG = true;
+	}
+
+	@Then("the debug mode is turned off")
+	public void theDebugModeIsTurnedOff() {
+		FlowAlgorithm.DEBUG = false;
 	}
 }
 

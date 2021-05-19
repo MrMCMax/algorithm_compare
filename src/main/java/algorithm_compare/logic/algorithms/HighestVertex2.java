@@ -23,9 +23,7 @@ public class HighestVertex2 extends FlowAlgorithm {
 	protected LinkedList<Vertex>[] heights;
 	protected LinkedList<Integer> b;
 	protected Vertex candidate;
-	//For debugging purposes
-	private LinkedList<Integer> chosenVertices;
-	private LinkedList<Integer> chosenHeights;
+	protected int iteration = 0;
 
 	protected class Vertex {
 		protected int v;
@@ -124,9 +122,6 @@ public class HighestVertex2 extends FlowAlgorithm {
 		}
 		vertices.get(s).increaseHeightBy(n);
 		candidate = null;
-		//For debugging purposes
-		chosenVertices = new LinkedList<Integer>();
-		chosenHeights = new LinkedList<Integer>();
 	}
 
 	protected void initAlgorithm() {
@@ -151,15 +146,29 @@ public class HighestVertex2 extends FlowAlgorithm {
 		// Go
 		long maxFlow = 0;
 		while (candidate != null || thereAreVerticesWithExcess()) {
+			iteration++;
 			Vertex vertex = null;
 			if (candidate != null) {
 				vertex = candidate;
 			} else {
 				vertex = getVertexWithExcess(); // Polls
 			}
-			//For debugging purposes
-			chosenVertices.add(vertex.v);
-			chosenHeights.add(vertex.height);
+			if (DEBUG) {
+				int height = 0;
+				Vertex maxVertex = null;
+				for (int i = 0; i < vertices.size(); i++) {
+					if (i == s || i == t) continue;
+					if (vertices.get(i).isActive() && vertices.get(i).height > height) {
+						height = Math.max(vertices.get(i).height, height);
+						maxVertex = vertices.get(i);
+					}
+				}
+				if (vertex.height < height) {
+					System.out.println("Iteration " + iteration + ":");
+					throw new RuntimeException("Candidate vertex " + vertex.v + " at height " + vertex.height + " was selected,"
+							+ "even though the highest height is of the vertex " + maxVertex.v + " at height " + maxVertex.height);
+				}
+			}
 			//End debug
 			List<OneEndpointEdge> adj = g.getAdjacencyList(vertex.v);
 			int e = vertex.currentEdge;
@@ -194,6 +203,15 @@ public class HighestVertex2 extends FlowAlgorithm {
 				candidate = null;
 			}
 		}
+		if (DEBUG) {
+			for (int i = 0; i < vertices.size(); i++) {
+				if (vertices.get(i).isActive()) {
+					Vertex u = vertices.get(i);
+					throw new RuntimeException("Vertex " + u.v + " was active with excess " + u.excess + " at height " +
+							+ u.height + " but wasn't found: " + b.toString());
+				}
+			}
+		}
 		// That's it. Calculate the value of the flow.
 		return calculateMaxFlow();
 	}
@@ -218,7 +236,11 @@ public class HighestVertex2 extends FlowAlgorithm {
 				addVertexWithExcess(w); // Lemma discovered with Inge: w will always will have excess
 		}
 	}
-
+	
+	protected boolean thereAreVerticesWithExcess() {
+		return !b.isEmpty();
+	}
+	
 	protected Vertex getVertexWithExcess() {
 		int h = b.peek();
 		Vertex ret = heights[h].pop();
@@ -240,10 +262,6 @@ public class HighestVertex2 extends FlowAlgorithm {
 		}
 	}
 
-	protected boolean thereAreVerticesWithExcess() {
-		return !b.isEmpty();
-	}
-
 	protected long calculateMaxFlow() {
 		long maxFlow = 0;
 		List<OneEndpointEdge> adjT = g.getAdjacencyList(t);
@@ -254,15 +272,6 @@ public class HighestVertex2 extends FlowAlgorithm {
 				maxFlow += e.remainingCapacity();
 			}
 		}
-		//For debugging purposes
-		StringBuilder sb = new StringBuilder();
-		sb.append("HighestVertex2:\n");
-		sb.append("Vertices: \n");
-		sb.append(chosenVertices.toString()).append("\n");
-		sb.append("Heights: \n");
-		sb.append(chosenHeights.toString()).append("\n");
-		HighestVertex1.writeToFile("HighestVertex2Stats.txt", sb.toString());
-		//End debug
 		return maxFlow;
 	}
 

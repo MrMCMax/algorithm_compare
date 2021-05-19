@@ -5,6 +5,8 @@ import mrmcmax.data_structures.graphs.ResidualGraphList;
 public abstract class FlowAlgorithm {
 	private String name;
 	
+	public static boolean DEBUG = false;
+	
 	public FlowAlgorithm(String name) {
 		this.name = name;
 	}
