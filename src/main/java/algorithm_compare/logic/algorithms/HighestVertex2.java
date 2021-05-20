@@ -1,11 +1,14 @@
 package algorithm_compare.logic.algorithms;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Stack;
 
+import algorithm_compare.logic.algorithms.HighestVertex2.Vertex;
 import mrmcmax.data_structures.graphs.OneEndpointEdge;
 import mrmcmax.data_structures.graphs.ResidualGraphList;
 
@@ -20,9 +23,9 @@ public class HighestVertex2 extends FlowAlgorithm {
 	protected int t;
 	protected int n;
 	protected ArrayList<Vertex> vertices;
-	protected LinkedList<Vertex>[] heights;
+	protected LinkedList<Vertex>[] activeHeights;
 	protected LinkedList<Integer> b;
-	protected Vertex candidate;
+	//For debugging purposes
 	protected int iteration = 0;
 
 	protected class Vertex {
@@ -112,16 +115,16 @@ public class HighestVertex2 extends FlowAlgorithm {
 	@SuppressWarnings("unchecked")
 	public void initDataStructures() {
 		vertices = new ArrayList<Vertex>(n);
-		heights = new LinkedList[n + 1];
-		heights[0] = new LinkedList<Vertex>();
-		heights[n] = new LinkedList<Vertex>();
+		activeHeights = new LinkedList[n + 1];
+		for (int i = 0; i < n+1; i++) {
+			activeHeights[i] = new LinkedList<Vertex>();
+		}
 		b = new LinkedList<Integer>();
 		// Create vertices
 		for (int i = 0; i < n; i++) {
 			vertices.add(new Vertex(i));
 		}
 		vertices.get(s).increaseHeightBy(n);
-		candidate = null;
 	}
 
 	protected void initAlgorithm() {
@@ -135,8 +138,12 @@ public class HighestVertex2 extends FlowAlgorithm {
 			e.augment(e.capacity);
 			g.getAdjacencyList(e.endVertex).get(e.reverseEdgeIndex).decrement(e.capacity);
 			if (e.endVertex != t) {
-				vertices.get(e.endVertex).increaseExcessBy(e.capacity); // Excesses start at 0 in this implementation
-				addVertexWithExcess(vertices.get(e.endVertex));
+				Vertex w = vertices.get(e.endVertex);
+				w.increaseExcessBy(e.capacity); // Excesses start at 0 in this implementation
+				activeHeights[0].add(w);
+				if (b.isEmpty()) {
+					b.push(0); //No other height at the start of the algorithm
+				}
 			}
 		}
 		// No need to change current edge of s because it will return to the start.
@@ -145,14 +152,11 @@ public class HighestVertex2 extends FlowAlgorithm {
 	protected long algorithm() {
 		// Go
 		long maxFlow = 0;
-		while (candidate != null || thereAreVerticesWithExcess()) {
-			iteration++;
-			Vertex vertex = null;
-			if (candidate != null) {
-				vertex = candidate;
-			} else {
-				vertex = getVertexWithExcess(); // Polls
+		while (thereAreVerticesWithExcess()) {
+			if (DEBUG) {
+				iteration++;
 			}
+			Vertex vertex = getVertexWithExcess(); // Peeks
 			if (DEBUG) {
 				int height = 0;
 				Vertex maxVertex = null;
@@ -178,8 +182,9 @@ public class HighestVertex2 extends FlowAlgorithm {
 			while (!relabel && vertex.excess > 0) {
 				// Search for an edge to push
 				boolean eligible = false;
+				OneEndpointEdge edge = null;
 				while (e < adj.size() && !eligible) {
-					OneEndpointEdge edge = adj.get(e);
+					edge = adj.get(e);
 					if (vertices.get(edge.endVertex).height >= v_h || edge.remainingCapacity() <= 0) {
 						e++;
 					} else {
@@ -190,25 +195,41 @@ public class HighestVertex2 extends FlowAlgorithm {
 					vertex.setCurrentEdge(e);
 					int delta = Math.min(vertex.excess, adj.get(e).remainingCapacity());
 					push(vertex, e, delta);
-				} else {
+					// Push creates excess on the endvertex
+					if (edge.endVertex != t && edge.endVertex != s) {
+						Vertex w = vertices.get(edge.endVertex);
+						int oldExcess = w.excess;
+						w.increaseExcessBy(delta);
+						if (oldExcess == 0) {
+							// New vertex with excess. Must add to the data structure.
+							activeHeights[w.height].add(w);
+						}
+						//Add the vertex just behind the stack
+						if (b.get(1) < w.height) {
+							b.add(1, w.height);
+						}
+					}
+					// Push might clear excess
+					vertex.decreaseExcessBy(delta);
+					if (vertex.excess == 0) {
+						LinkedList<Vertex> vertexHeight = activeHeights[vertex.height];
+						vertexHeight.pop();
+						if (vertexHeight.isEmpty()) {
+							b.pop();
+						}
+					}
+				} else { //Relabel
+					activeHeights[vertex.height].pop();
+					if (activeHeights[vertex.height].isEmpty()) {
+						b.pop();
+					}
 					relabelByMin(vertex);
+					if (vertex.height < n) { //Still active
+						activeHeights[vertex.height].add(vertex);
+						b.push(vertex.height);
+					}
 					vertex.setCurrentEdge(0);
 					relabel = true;
-				}
-			}
-			if (vertex.isActive()) {
-				//addVertexWithExcess(vertex);
-				candidate = vertex;
-			} else {
-				candidate = null;
-			}
-		}
-		if (DEBUG) {
-			for (int i = 0; i < vertices.size(); i++) {
-				if (vertices.get(i).isActive()) {
-					Vertex u = vertices.get(i);
-					throw new RuntimeException("Vertex " + u.v + " was active with excess " + u.excess + " at height " +
-							+ u.height + " but wasn't found: " + b.toString());
 				}
 			}
 		}
@@ -217,7 +238,7 @@ public class HighestVertex2 extends FlowAlgorithm {
 	}
 
 	/**
-	 * Push operation. Also fixes excesses and vertices with excess.
+	 * Push operation. Doesn't fix excesses, only the edge.
 	 * 
 	 * @param vertex the vertex to push from
 	 * @param edge   the edge in its adjacency list
@@ -227,39 +248,15 @@ public class HighestVertex2 extends FlowAlgorithm {
 		OneEndpointEdge e = g.getAdjacencyList(vertex.v).get(edge);
 		e.augment(flow);
 		g.getAdjacencyList(e.endVertex).get(e.reverseEdgeIndex).decrement(flow);
-		vertex.decreaseExcessBy(flow);
-		if (e.endVertex != t && e.endVertex != s) {
-			Vertex w = vertices.get(e.endVertex);
-			int oldExcess = w.excess;
-			w.increaseExcessBy(flow);
-			if (oldExcess == 0)
-				addVertexWithExcess(w); // Lemma discovered with Inge: w will always will have excess
-		}
-	}
-	
-	protected boolean thereAreVerticesWithExcess() {
-		return !b.isEmpty();
-	}
-	
-	protected Vertex getVertexWithExcess() {
-		int h = b.peek();
-		Vertex ret = heights[h].pop();
-		if (heights[h].size() == 0)
-			b.pop();
-		return ret;
 	}
 
-	protected void addVertexWithExcess(Vertex v) {
-		if (v.isActive()) {
-			if (heights[v.height] == null) {
-				heights[v.height] = new LinkedList<>();
-			}
-			heights[v.height].add(v);
-			if (b.isEmpty() || (b.peek() < v.height)) {
-				b.addFirst(v.height);
-			}
-			//b = Math.max(b, v.height);
-		}
+	protected Vertex getVertexWithExcess() {
+		int h = b.peek();
+		return activeHeights[h].peek();
+	}
+
+	protected boolean thereAreVerticesWithExcess() {
+		return !b.isEmpty();
 	}
 
 	protected long calculateMaxFlow() {
@@ -290,16 +287,21 @@ public class HighestVertex2 extends FlowAlgorithm {
 		}
 		newHeight++;
 		vertex.height = newHeight;
-		/*if (newHeight < n) {
-			if (heights[newHeight] == null) {
-				heights[newHeight] = new HashSet<Vertex>();
-			}
-			heights[newHeight].add(vertex);
-			b = Math.max(b, newHeight);
-		}*/
 	}
 	
 	protected void relabelBy1(Vertex vertex) {
 		vertex.height+=1;
+	}
+	
+	public static void writeToFile(String filename, String text) {
+		try {
+			PrintWriter out = new PrintWriter(new File(filename));
+			out.print(text);
+			out.flush();
+			out.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }
