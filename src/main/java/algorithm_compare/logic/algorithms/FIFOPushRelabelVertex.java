@@ -60,22 +60,6 @@ public class FIFOPushRelabelVertex extends FlowAlgorithm {
 		protected void relabelBy1() {
 			this.height += 1;
 		}
-		
-		/**
-		 * Improved relabel operation.
-		 */
-		protected void relabelByMin() {
-			List<OneEndpointEdge> adj = g.getAdjacencyList(this.v);
-			int newHeight = Integer.MAX_VALUE;
-			OneEndpointEdge edge = null;
-			for (int i = 0; i < adj.size(); i++) {
-				edge = adj.get(i);
-				if (edge.remainingCapacity() > 0) {
-					newHeight = Math.min(newHeight, vertices.get(edge.endVertex).height);
-				}
-			}
-			this.height = newHeight + 1;
-		}
 	}
 	/**
 	 * Precondition: all flows are zero.
@@ -149,7 +133,7 @@ public class FIFOPushRelabelVertex extends FlowAlgorithm {
 					int delta = Math.min(vertex.excess, adj.get(e).remainingCapacity());
 					push(vertex, e, delta);
 				} else {
-					vertex.relabelByMin();
+					relabelByMin(vertex);
 					vertex.setCurrentEdge(0);
 					relabel = true;
 				}
@@ -178,6 +162,22 @@ public class FIFOPushRelabelVertex extends FlowAlgorithm {
 			w.increaseExcessBy(flow);
 			addVertexWithExcess(w); //Lemma discovered with Inge: w will always will have excess
 		}
+	}
+	
+	/**
+	 * Improved relabel operation.
+	 */
+	protected void relabelByMin(Vertex vertex) {
+		List<OneEndpointEdge> adj = g.getAdjacencyList(vertex.v);
+		int newHeight = Integer.MAX_VALUE;
+		OneEndpointEdge edge = null;
+		for (int i = 0; i < adj.size(); i++) {
+			edge = adj.get(i);
+			if (edge.remainingCapacity() > 0) {
+				newHeight = Math.min(newHeight, vertices.get(edge.endVertex).height);
+			}
+		}
+		vertex.height = newHeight + 1;
 	}
 
 	protected Vertex getVertexWithExcess() {

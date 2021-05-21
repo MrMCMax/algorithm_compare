@@ -31,6 +31,7 @@ public class HighestVertexGapRelabelling2 extends FlowAlgorithm {
 	protected LinkedList<Vertex>[] activeHeights;
 	protected EraserLinkedList<Vertex>[] nonActiveHeights;
 	protected int b;
+	protected int highestNonActiveHeight;
 	protected int iteration = 0;
 	//For global relabel update
 	protected int relabels = 0;
@@ -147,6 +148,7 @@ public class HighestVertexGapRelabelling2 extends FlowAlgorithm {
 		Vertex source = vertices.get(s);
 		source.increaseHeightBy(n);
 		nonActiveHeights[0].remove(source.nonActivePointer);
+		highestNonActiveHeight = 0;
 	}
 
 	protected void initAlgorithm() {
@@ -171,6 +173,7 @@ public class HighestVertexGapRelabelling2 extends FlowAlgorithm {
 			}
 		}
 		// No need to change current edge of s because it will return to the start.
+		//globalRelabel();
 	}
 
 	protected long algorithm() {
@@ -279,6 +282,9 @@ public class HighestVertexGapRelabelling2 extends FlowAlgorithm {
 					relabelByMin(vertex); //Might trigger a global relabel
 					int newHeight = vertex.height;
 					activeHeights[oldHeight].pop();
+					if (newHeight < n) {
+						highestNonActiveHeight = Math.max(newHeight, highestNonActiveHeight);
+					}
 					// WE MIGHT HAVE A GAP
 					if (activeHeights[oldHeight].isEmpty() && nonActiveHeights[oldHeight].isEmpty()) {
 						// The vertex is above a gap
@@ -292,7 +298,7 @@ public class HighestVertexGapRelabelling2 extends FlowAlgorithm {
 						Vertex w;
 						LinkedList<Vertex> activeHeight;
 						EraserLinkedList<Vertex> nonActiveHeight;
-						for (int i = oldHeight + 1; i < n; i++) {
+						for (int i = oldHeight + 1; i <= highestNonActiveHeight; i++) {
 							activeHeight = activeHeights[i];
 							nonActiveHeight = nonActiveHeights[i];
 							while (!activeHeight.isEmpty()) {
