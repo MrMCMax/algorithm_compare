@@ -20,7 +20,7 @@ Feature: Test throrough correctness of HighestVertex
 	@Correctness
 	Scenario: Test HighestVertexStack
 	  Given the test network "10000size.max"
-    And the list of algorithms "HighestVertex_GR_Exact"
+    And the list of algorithms "HighestVertexGapRelabelling2"
     And a default logic service
     And the debug mode is turned on
     When We run the algorithms on the network

@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import algorithm_compare.logic.algorithms.HighestVertex_GR_Exact.Vertex;
 import mrmcmax.data_structures.graphs.OneEndpointEdge;
 import mrmcmax.data_structures.graphs.ResidualGraphList;
 import mrmcmax.data_structures.linear.ArrayLimitQueue;
@@ -202,11 +203,7 @@ public class HighestVertexGapRelabelling2 extends FlowAlgorithm {
 						e++;
 					} else {
 						if (DEBUG) {
-							if (edge.remainingCapacity() > 0 && vertices.get(edge.endVertex).height < v_h - 1) {
-								System.err.println("Iteration " + iteration);
-								throw new RuntimeException("EDGE TOO STEEP: (" + vertex.v + ", " + edge.endVertex
-										+ "), heights: " + vertex.height + ", " + vertices.get(edge.endVertex).height);
-							}
+							testTooSteep(vertex, edge, v_h);
 						}
 						eligible = true;
 					}
@@ -228,21 +225,8 @@ public class HighestVertexGapRelabelling2 extends FlowAlgorithm {
 							activeHeights[w.height].add(w);
 						}
 						if (DEBUG) {
-							// Make sure that the vertex that has excess is stored
-							List<Vertex> h = activeHeights[w.height];
-							Iterator<Vertex> it = h.iterator();
-							int i = 0;
-							while (it.hasNext()) {
-								Vertex inList = it.next();
-								if (inList.v != w.v)
-									i++;
-							}
-							boolean found = i < h.size();
-							if (!found) {
-								System.err.println("Iteration " + iteration);
-								throw new RuntimeException(
-										"Active vertex " + w.v + " not found " + "at height " + w.height);
-							}
+							//Make sure that the vertex that has excess is stored
+							testStored(w);
 						}
 					}
 					// Push might clear excess
@@ -257,25 +241,7 @@ public class HighestVertexGapRelabelling2 extends FlowAlgorithm {
 					}
 				} else {
 					if (DEBUG) {
-						//check that it has excess and it cannot push forward
-						if (vertex.isActive()) {
-							OneEndpointEdge outEdge;
-							for (int i = 0; i < adj.size(); i++) {
-								outEdge = adj.get(i);
-								if (outEdge.remainingCapacity() > 0 &&
-										vertices.get(outEdge.endVertex).height == vertex.height - 1) {
-									System.err.println("Iteration " + iteration);
-									throw new RuntimeException("Relabelling vertex " + vertex.v + " at height " + vertex.height +
-											" when there's a valid edge: " + outEdge + " leading to " +
-											outEdge.endVertex + " at height " + vertices.get(outEdge.endVertex).height);
-								}
-									
-							}
-						} else {
-							System.err.println("Iteration " + iteration);
-							throw new RuntimeException("Relabelling a vertex without excess: "
-									+ vertex.v + " at height " + vertex.height);
-						}
+						testValidRelabel(vertex, adj);
 					}
 					// Relabel sets the new height of the vertex
 					int oldHeight = vertex.height;
@@ -362,16 +328,7 @@ public class HighestVertexGapRelabelling2 extends FlowAlgorithm {
 		}
 		ret = b >= 0;
 		if (DEBUG) {
-			int i = 0;
-			while (i < n && (activeHeights[i] == null || activeHeights[i].isEmpty())) {
-				i++;
-			}
-			boolean excess = i < n;
-			if (excess && !ret) {
-				System.err.println("Iteration " + iteration);
-				throw new RuntimeException("There was a vertex with excess at height " + i + " but the pointer was "
-						+ "at height " + b + " and it found none");
-			}
+			testB(ret);
 		}
 		return ret;
 	}
@@ -474,10 +431,7 @@ public class HighestVertexGapRelabelling2 extends FlowAlgorithm {
 							b = Math.max(b, newHeight);
 					} else {
 						if (DEBUG) {
-							if (newHeight >= n) {
-								System.err.println("Iteration " + iteration);
-								throw new RuntimeException("Found an augmenting path from " + out_vertex.v + " to t where v has a height " + newHeight);
-							}
+							testAugPathN(newHeight, out_vertex);
 						}
 						allVertices.remove(out_vertex.nonActivePointer);
 						out_vertex.nonActivePointer = nonActiveHeights[newHeight].addAndReturnPointer(out_vertex);
@@ -492,25 +446,98 @@ public class HighestVertexGapRelabelling2 extends FlowAlgorithm {
 			v.height = n;
 		}
 		//End of global relabel
-		if (DEBUG) {
-			//Check that the conditions hold
-			for (int i = 0; i < vertices.size(); i++) {
-				if (i == s || i == t) continue;
-				List<OneEndpointEdge> adj = g.getAdjacencyList(i);
-				Vertex vertex = vertices.get(i);
-				int height = vertex.height;
-				//BFS to see if the height is correct
-				
-				//Check if it has too steep edges
-				for (int j = 0; j < adj.size(); j++) {
-					OneEndpointEdge e = adj.get(j);
-					if (e.remainingCapacity() > 0) {
-						Vertex outVertex = vertices.get(e.endVertex);
-						if (outVertex.height < vertex.height - 1) {
-							System.err.println("Iteration " + iteration);
-							throw new RuntimeException("Global relabelling made edge too steep: " + 
-									vertex.v + ", " + outVertex.v + " at heights " + vertex.height + ", " + outVertex.height);
-						}
+		if (DEBUG) testGlobalRelabel();
+	}
+	
+	/*
+	 * TESTS
+	 */
+
+	protected void testTooSteep(Vertex vertex, OneEndpointEdge edge, int v_h) {
+		if (edge.remainingCapacity() > 0 && vertices.get(edge.endVertex).height < v_h - 1) {
+			System.err.println("Iteration " + iteration);
+			throw new RuntimeException("EDGE TOO STEEP: (" + vertex.v + ", " + edge.endVertex + "), heights: "
+					+ vertex.height + ", " + vertices.get(edge.endVertex).height);
+		}
+	}
+
+	protected void testStored(Vertex w) {
+		List<Vertex> h = activeHeights[w.height];
+		Iterator<Vertex> it = h.iterator();
+		int i = 0;
+		while (it.hasNext()) {
+			Vertex inList = it.next();
+			if (inList.v != w.v)
+				i++;
+		}
+		boolean found = i < h.size();
+		if (!found) {
+			System.err.println("Iteration " + iteration);
+			throw new RuntimeException("Active vertex " + w.v + " not found " + "at height " + w.height);
+		}
+	}
+
+	protected void testValidRelabel(Vertex vertex, List<OneEndpointEdge> adj) {
+		// check that it has excess and it cannot push forward
+		if (vertex.isActive()) {
+			OneEndpointEdge outEdge;
+			for (int i = 0; i < adj.size(); i++) {
+				outEdge = adj.get(i);
+				if (outEdge.remainingCapacity() > 0 && vertices.get(outEdge.endVertex).height == vertex.height - 1) {
+					System.err.println("Iteration " + iteration);
+					throw new RuntimeException("Relabelling vertex " + vertex.v + " at height " + vertex.height
+							+ " when there's a valid edge: " + outEdge + " leading to " + outEdge.endVertex
+							+ " at height " + vertices.get(outEdge.endVertex).height);
+				}
+
+			}
+		} else {
+			System.err.println("Iteration " + iteration);
+			throw new RuntimeException(
+					"Relabelling a vertex without excess: " + vertex.v + " at height " + vertex.height);
+		}
+	}
+	
+	protected void testB(boolean ret) {
+		int i = 0;
+		while (i < n && (activeHeights[i] == null || activeHeights[i].isEmpty())) {
+			i++;
+		}
+		boolean excess = i < n;
+		if (excess && !ret) {
+			System.err.println("Iteration " + iteration);
+			throw new RuntimeException("There was a vertex with excess at height " + i + " but the pointer was "
+					+ "at height " + b + " and it found none");
+		}
+	}
+	
+	protected void testAugPathN(int newHeight, Vertex out_vertex) {
+		if (newHeight >= n) {
+			System.err.println("Iteration " + iteration);
+			throw new RuntimeException("Found an augmenting path from " + out_vertex.v
+					+ " to t where v has a height " + newHeight);
+		}
+	}
+
+	protected void testGlobalRelabel() {
+		// Check that the conditions hold
+		for (int i = 0; i < vertices.size(); i++) {
+			if (i == s || i == t)
+				continue;
+			List<OneEndpointEdge> adj = g.getAdjacencyList(i);
+			Vertex vertex = vertices.get(i);
+			int height = vertex.height;
+			// BFS to see if the height is correct
+
+			// Check if it has too steep edges
+			for (int j = 0; j < adj.size(); j++) {
+				OneEndpointEdge e = adj.get(j);
+				if (e.remainingCapacity() > 0) {
+					Vertex outVertex = vertices.get(e.endVertex);
+					if (outVertex.height < vertex.height - 1) {
+						System.err.println("Iteration " + iteration);
+						throw new RuntimeException("Global relabelling made edge too steep: " + vertex.v + ", "
+								+ outVertex.v + " at heights " + vertex.height + ", " + outVertex.height);
 					}
 				}
 			}
