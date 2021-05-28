@@ -112,7 +112,7 @@ public class HighestVertexGapRelabelling2 extends FlowAlgorithm {
 		this.t = g.getSink();
 		this.m = g.getNumEdges();
 		int ratio = m/n;
-		this.GLOBAL_RELABEL_FREQ = n;
+		this.GLOBAL_RELABEL_FREQ = m;
 		// Set up data structures. This method can be overriden for
 		// different data structure choices.
 		initDataStructures();
@@ -486,32 +486,6 @@ public class HighestVertexGapRelabelling2 extends FlowAlgorithm {
 				}
 			}
 		}
-		//Now, forwards from s! all vertices that don't have an s-t augmenting path should be raised to n
-		//Because we are not maintaining the s-v paths, we will just raise all others
-		/*
-		q.reset();
-		q.add(vertices.get(s));
-		while (!q.isEmpty() ) {
-			Vertex vertex = q.poll();
-			List<OneEndpointEdge> adj = g.getAdjacencyList(vertex.v);
-			OneEndpointEdge edge;
-			for (int i = 0; i < adj.size(); i++) {
-				edge = adj.get(i);
-				if (!visited[edge.endVertex] && edge.remainingCapacity() > 0) {
-					//We got an augmenting path to one useless vertex
-					visited[edge.endVertex] = true;
-					Vertex out_vertex = vertices.get(edge.endVertex);
-					out_vertex.height = n;
-					q.add(out_vertex);
-				}
-			}
-		}
-		*//*
-		for (int i = 0; i < n; i++) {
-			if (!visited[i]) {
-				vertices.get(i).height = n;
-			}
-		}*/
 		while (!allVertices.isEmpty()) {
 			v = allVertices.poll();
 			v.nonActivePointer = null;
