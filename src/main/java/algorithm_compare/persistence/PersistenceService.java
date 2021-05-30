@@ -15,6 +15,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import mrmcmax.data_structures.graphs.ResidualGraphList;
+
 import static algorithm_compare.persistence.GraphData.TwoEndpointEdge;
 
 public class PersistenceService implements IPersistenceService {
@@ -100,7 +102,7 @@ public class PersistenceService implements IPersistenceService {
 	}
 
 	@Override
-	public GraphData loadNetwork(String name) throws IOException {
+	public ResidualGraphList loadNetwork(String name) throws IOException {
 		Network net = networks.get(name);
 		return net.loadNetwork();
 	}

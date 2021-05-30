@@ -228,7 +228,7 @@ public class SelectAlgorithm extends JFrame {
 				long[] res = launcher.logic().retrieveTimes(selectedNetworks.get(i), selectedAlgorithms.toArray(new String[0]));
 				for (int j = 0; j < res.length; j++) {
 					if (res[j] == -1) {
-						Launcher.showErrorMessage(this, "Value not computed for network "
+						Launcher.showWarningMessage(this, "Value not computed for network "
 								+ selectedNetworks.get(i) + " and algorithm " + selectedAlgorithms.get(j) + "");
 					}
 					results[i][j] = res[j];

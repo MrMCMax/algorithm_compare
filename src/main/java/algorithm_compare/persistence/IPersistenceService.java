@@ -3,11 +3,13 @@ package algorithm_compare.persistence;
 import java.io.IOException;
 import java.util.List;
 
+import mrmcmax.data_structures.graphs.ResidualGraphList;
+
 public interface IPersistenceService {
 
 	List<String> getAllNetworkNames() throws IOException;
 	
-	GraphData loadNetwork(String name) throws IOException;
+	ResidualGraphList loadNetwork(String name) throws IOException;
 
 	void storeTimes(String name, String[] algs, long[] times) throws IOException;
 	

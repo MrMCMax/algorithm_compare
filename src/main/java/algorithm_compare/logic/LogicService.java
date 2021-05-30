@@ -161,14 +161,14 @@ public class LogicService implements ILogicService {
 		if (loadedGraphs.containsKey(networkName)) {
 			return loadedGraphs.get(networkName);
 		} else {
-			GraphData gd = persistenceService.loadNetwork(networkName);
-			ResidualGraphList rg = buildAdjacencyListGraph(gd);
+			ResidualGraphList rg = persistenceService.loadNetwork(networkName);
 			loadedGraphs.put(networkName, rg);
 			return rg;
 		}
 	}
 	
 	/**
+	 * DEPRECATED
 	 * Builds the ResidualGraph representation of a network given the raw graph data.
 	 * @param networkName the network's unique name
 	 * @return the associated ResidualGraph object, built by adjacency lists.

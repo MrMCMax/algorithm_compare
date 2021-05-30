@@ -105,7 +105,7 @@ public class Plots extends JFrame {
 			sb.append("y").append(i).append("=[");
 			sb.append(values[0][i]);// First network, algorithm
 			for (int j = 1; j < networkNames.size(); j++) {
-				sb.append(",").append(values[j][i]);
+				sb.append(",").append(values[j][i] != -1 ? values[j][i] : "float('NaN')"); //To make gaps
 			}
 			sb.append("]\n");
 		}

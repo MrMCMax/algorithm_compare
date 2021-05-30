@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import algorithm_compare.persistence.GraphData.TwoEndpointEdge;
+import mrmcmax.data_structures.graphs.ResidualGraphList;
 
 public class Network implements Serializable {
 
@@ -40,7 +41,7 @@ public class Network implements Serializable {
 		return path;
 	}
 
-	public GraphData loadNetwork() throws IOException {
+	public ResidualGraphList loadNetwork() throws IOException {
 		FastReader fr = new FastReader(path);
 		// First we read the problem line
 		int[] values = dimacsProblemLine(fr);
@@ -63,16 +64,30 @@ public class Network implements Serializable {
 		} else {
 			throw new IOException("Bad DIMACS format: can't read node descriptors");
 		}
-		// Then we read edges
-		TwoEndpointEdge[] edges = new TwoEndpointEdge[m];
+		// Then we read edges. We will store them directly in ResidualGraphList
+		ResidualGraphList rg = new ResidualGraphList(n);
+		rg.setSource(s);
+		rg.setSink(t);
+		//v_in, v_out, capacity
 		int[] edge;
 		for (int i = 0; i < m; i++) {
 			edge = dimacsReadEdge(fr);
-			edges[i] = new TwoEndpointEdge(edge[0], edge[1], edge[2]);
+			rg.addEdge(edge[0], edge[1], edge[2]);
 		}
 		fr.close();
-		return new GraphData(n, s, t, edges);
+		return rg;
 	}
+	/*	private ResidualGraphList buildAdjacencyListGraph(GraphData gd) {
+		ResidualGraphList rg = new ResidualGraphList(gd.n);
+		rg.setSource(gd.s);
+		rg.setSink(gd.t);
+		TwoEndpointEdge[] edges = gd.edges;
+		for (int i = 0; i < edges.length; i++) {
+			rg.addEdge(edges[i].v_in, edges[i].v_out, edges[i].capacity);
+		}
+		return rg;
+	}
+	 */
 
 	private String[] dimacsNextLine(FastReader br) throws IOException {
 		String line = br.readLine();

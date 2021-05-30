@@ -119,4 +119,8 @@ public class Launcher {
 	public static void showErrorMessage(Component parent, String message) {
 		JOptionPane.showMessageDialog(parent, message, "An error has occurred", JOptionPane.ERROR_MESSAGE);
 	}
+	
+	public static void showWarningMessage(Component parent, String message) {
+		JOptionPane.showMessageDialog(parent, message, "Warning", JOptionPane.WARNING_MESSAGE);
+	}
 }
