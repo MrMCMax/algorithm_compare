@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import algorithm_compare.logic.algorithms.HighestVertex_GR_Exact.Vertex;
 import mrmcmax.data_structures.graphs.OneEndpointEdge;
 import mrmcmax.data_structures.graphs.ResidualGraphList;
 import mrmcmax.data_structures.linear.ArrayLimitQueue;
@@ -16,10 +17,10 @@ import mrmcmax.data_structures.linear.EasyQueue;
 import mrmcmax.data_structures.linear.EraserLinkedList;
 import mrmcmax.data_structures.linear.EraserLinkedList.Node;
 
-public class HighestVertex_GR_Exact extends FlowAlgorithm {
+public class HighestVertexGapRelabellingStack_N extends FlowAlgorithm {
 
-	public HighestVertex_GR_Exact() {
-		super("HighestVertex_GR_Exact");
+	public HighestVertexGapRelabellingStack_N() {
+		super("HighestVertexGapRelabellingStack_N");
 	}
 
 	protected ResidualGraphList g;
@@ -30,14 +31,14 @@ public class HighestVertex_GR_Exact extends FlowAlgorithm {
 	protected ArrayList<Vertex> vertices;
 	protected LinkedList<Vertex>[] activeHeights;
 	protected EraserLinkedList<Vertex>[] nonActiveHeights;
-	protected int b;
+	protected LinkedList<Integer> b;
 	protected int highestNonActiveHeight;
 	protected int iteration = 0;
-	// For global relabel update at the start
+	//For global relabel update
+	protected int relabels = 0;
+	protected static int GLOBAL_RELABEL_FREQ;
 	protected EasyQueue<Vertex> q;
 	protected boolean visited[];
-	//For exact relabelling
-	protected LinkedList<Vertex> relabelQueue;
 
 	protected class Vertex {
 		protected int v;
@@ -111,6 +112,8 @@ public class HighestVertex_GR_Exact extends FlowAlgorithm {
 		this.s = g.getSource();
 		this.t = g.getSink();
 		this.m = g.getNumEdges();
+		int ratio = m/n;
+		this.GLOBAL_RELABEL_FREQ = n;
 		// Set up data structures. This method can be overriden for
 		// different data structure choices.
 		initDataStructures();
@@ -130,9 +133,9 @@ public class HighestVertex_GR_Exact extends FlowAlgorithm {
 			activeHeights[i] = new LinkedList<Vertex>();
 			nonActiveHeights[i] = new EraserLinkedList<Vertex>();
 		}
-		b = 0;
+		b = new LinkedList<>();
+		b.push(0);
 		q = new ArrayLimitQueue<Vertex>(Vertex.class, n);
-		relabelQueue = new LinkedList<>();
 		visited = new boolean[n];
 		// Create vertices
 		Vertex v;
@@ -172,22 +175,21 @@ public class HighestVertex_GR_Exact extends FlowAlgorithm {
 			}
 		}
 		// No need to change current edge of s because it will return to the start.
-		// globalRelabel();
+		//globalRelabel();
 	}
 
 	protected long algorithm() {
 		// Go
-		DEBUG = false;
 		while (thereAreVerticesWithExcess()) {
-			iteration++;
+			if (DEBUG) {
+				iteration++;
+			}
 			Vertex vertex = getVertexWithExcess(); // Peeks
-			if (vertex.v > 6100000) {
-				DEBUG = true;
-			}
-			if (vertex.height >= n) {
-				activeHeights[b].pop(); // It has been changed by a gap labelling
+			/*if (vertex.height >= n) {
+				System.out.println("Weirdness");
+				activeHeights[b].pop(); //It has been changed by a gap labelling
 				continue;
-			}
+			}*/
 			List<OneEndpointEdge> adj = g.getAdjacencyList(vertex.v);
 			int e = vertex.currentEdge;
 			int v_h = vertex.height;
@@ -223,9 +225,12 @@ public class HighestVertex_GR_Exact extends FlowAlgorithm {
 							nonActiveHeights[w.height].remove(w.nonActivePointer);
 							w.nonActivePointer = null;
 							activeHeights[w.height].add(w);
+							if (b.size() == 1 || (b.get(1) < w.height)) {
+								b.add(1, w.height);
+							}
 						}
 						if (DEBUG) {
-							// Make sure that the vertex that has excess is stored
+							//Make sure that the vertex that has excess is stored
 							testStored(w);
 						}
 					}
@@ -234,111 +239,73 @@ public class HighestVertex_GR_Exact extends FlowAlgorithm {
 					if (vertex.excess == 0) {
 						vertex.nonActivePointer = nonActiveHeights[vertex.height].addAndReturnPointer(vertex);
 						LinkedList<Vertex> vertexHeight = activeHeights[vertex.height];
-						vertexHeight.pop(); // If we are working with vertex, it is at the start of the list
+						vertexHeight.pop(); //If we are working with vertex, it is at the start of the list
 						if (vertexHeight.isEmpty()) {
-							b--;
+							b.pop();
 						}
 					}
 				} else {
 					if (DEBUG) {
-						//testValidRelabel(vertex, adj);
+						testValidRelabel(vertex, adj);
 					}
-					vertex.currentEdge = e; //To know that it has finished
-					// Let's start the relabel queue by adding "vertex". Then, the relabel function will add
-					// the required vertices to the queue.
-					relabelQueue.add(vertex);
-					while (!relabelQueue.isEmpty()) {
-						//if (DEBUG && iteration % 100 == 0) System.out.println(relabelQueue);
-						vertex = relabelQueue.poll();
-						//The vertex could find a new current edge - operation 1
-						adj = g.getAdjacencyList(vertex.v);
-						boolean found = false;
-						while (vertex.currentEdge < adj.size() && !found) {
-							edge = adj.get(vertex.currentEdge);
-							if (edge.remainingCapacity() > 0 &&
-									(vertices.get(edge.endVertex).height == vertex.height - 1)) {
-								found = true;
-							} else {
-								vertex.currentEdge += 1;
+					// Relabel sets the new height of the vertex
+					int oldHeight = vertex.height;
+					relabelByMin(vertex); //Might trigger a global relabel
+					int newHeight = vertex.height;
+					activeHeights[oldHeight].pop();
+					if (activeHeights[oldHeight].isEmpty()) {
+						b.pop();
+					}
+					if (newHeight < n) {
+						highestNonActiveHeight = Math.max(newHeight, highestNonActiveHeight);
+					}
+					// WE MIGHT HAVE A GAP
+					if (activeHeights[oldHeight].isEmpty() && nonActiveHeights[oldHeight].isEmpty()) {
+						// The vertex is above a gap
+						//System.out.println("Theres a gap at height " + oldHeight);
+						//vertex.height = n;
+						//RELABEL GLOBAL
+						//Set to n the height of all vertices above oldHeight.
+						//We only need to check those above oldHeight. They will be either
+						//in activeHeights or nonActiveHeights.
+						vertex.height = n;
+						Vertex w;
+						LinkedList<Vertex> activeHeight;
+						EraserLinkedList<Vertex> nonActiveHeight;
+						for (int i = oldHeight + 1; i <= highestNonActiveHeight; i++) {
+							activeHeight = activeHeights[i];
+							nonActiveHeight = nonActiveHeights[i];
+							while (!activeHeight.isEmpty()) {
+								w = activeHeight.poll();
+								w.height = n;
+							}
+							while (!nonActiveHeight.isEmpty()) {
+								w = nonActiveHeight.poll();
+								w.nonActivePointer = null;
+								w.height = n;
 							}
 						}
-						if (found) continue;
-						// Else, relabel sets the new height of the vertex.
-						int oldHeight = vertex.height;
-						exactRelabel(vertex);
-						int newHeight = vertex.height;
-						if (vertex.excess > 0) {
-							activeHeights[oldHeight].pop();
-						} else {
-							nonActiveHeights[oldHeight].remove(vertex.nonActivePointer);
-							vertex.nonActivePointer = null;
-						}
-						if (newHeight < n) {
-							highestNonActiveHeight = Math.max(newHeight, highestNonActiveHeight);
-						}
-						// WE MIGHT HAVE A GAP
-						if (activeHeights[oldHeight].isEmpty() && nonActiveHeights[oldHeight].isEmpty()) {
-							// The vertex is above a gap
-							vertex.height = n;
-							performGapRelabelling(oldHeight);
-							//The other vertices in the queue were at a distance higher than the vertex above the gap.
-							//They were cleared by the gap relabelling. They are not needed anymore.
-							relabelQueue.clear();
-							// There are no other excess vertices at this height
-							b--;
-						} else if (newHeight >= n) {
-							// Vertex might have risen to n. There's no more augmenting path for him.
-							// But there are still non-active vertices at height oldHeight, so there's no gap.
-							// The vertices in the relabel queue might find another current edge.
-							if (activeHeights[oldHeight].isEmpty()) {
-								b--;
-							}
-						} else {
-							// Normal relabel situation
-							if (vertex.excess > 0) {
-								activeHeights[newHeight].add(vertex);
-								b = newHeight;
-							} else {
-								vertex.nonActivePointer = nonActiveHeights[newHeight].addAndReturnPointer(vertex);
-							}
-							//b = newHeight;
-							vertex.setCurrentEdge(0);
-						}
+						//There are no more active vertices at height oldHeight. We have already popped.
+					} else if (newHeight >= n) {
+						// Vertex might have risen to n. There's no more augmenting path for him.
+						// But there are still non-active vertices at height oldHeight, so there's no gap.
+						//System.out.println("Vertex " + vertex.v + " rose to n");
+						//We have already checked if there were active vertices at height oldHeight.
+					} else {
+						// Normal relabel situation
+						activeHeights[newHeight].add(vertex);
+						b.push(newHeight);
+						vertex.setCurrentEdge(0);
 					}
 					relabel = true;
+					if (relabels % GLOBAL_RELABEL_FREQ == 0) {
+						globalRelabel();
+					}
 				}
 			}
 		}
 		// That's it. Calculate the value of the flow.
 		return calculateMaxFlow();
-	}
-	
-	/**
-	 * Clears all the vertices that are above oldHeight.
-	 * Does not change b or the queue.
-	 * @param oldHeight
-	 */
-	protected void performGapRelabelling(int oldHeight) {
-		// RELABEL GLOBAL
-		// Set to n the height of all vertices above oldHeight.
-		// We only need to check those above oldHeight. They will be either
-		// in activeHeights or nonActiveHeights.
-		Vertex w;
-		LinkedList<Vertex> activeHeight;
-		EraserLinkedList<Vertex> nonActiveHeight;
-		for (int i = oldHeight + 1; i <= highestNonActiveHeight; i++) {
-			activeHeight = activeHeights[i];
-			nonActiveHeight = nonActiveHeights[i];
-			while (!activeHeight.isEmpty()) {
-				w = activeHeight.poll();
-				w.height = n;
-			}
-			while (!nonActiveHeight.isEmpty()) {
-				w = nonActiveHeight.poll();
-				w.nonActivePointer = null;
-				w.height = n;
-			}
-		}
 	}
 
 	/**
@@ -355,16 +322,12 @@ public class HighestVertex_GR_Exact extends FlowAlgorithm {
 	}
 
 	protected Vertex getVertexWithExcess() {
-		Vertex ret = activeHeights[b].peek();
+		Vertex ret = activeHeights[b.peek()].peek();
 		return ret;
 	}
 
 	protected boolean thereAreVerticesWithExcess() {
-		boolean ret;
-		while (b >= 0 && activeHeights[b].isEmpty()) {
-			b--;
-		}
-		ret = b >= 0;
+		boolean ret = !b.isEmpty();
 		if (DEBUG) {
 			testB(ret);
 		}
@@ -386,29 +349,7 @@ public class HighestVertex_GR_Exact extends FlowAlgorithm {
 		}
 		newHeight++;
 		vertex.height = newHeight;
-	}
-
-	protected void exactRelabel(Vertex vertex) {
-		List<OneEndpointEdge> adj = g.getAdjacencyList(vertex.v);
-		int newHeight = Integer.MAX_VALUE;
-		int oldHeight = vertex.height;
-		OneEndpointEdge edge = null;
-		for (int i = 0; i < adj.size(); i++) {
-			edge = adj.get(i);
-			if (edge.remainingCapacity() > 0) {
-				// Checking for which height to go
-				Vertex outVertex = vertices.get(edge.endVertex);
-				newHeight = Math.min(newHeight, outVertex.height);
-				if ((edge.endVertex != s || edge.endVertex != t) &&
-						(outVertex.height == oldHeight + 1) && 
-						(outVertex.currentEdge == edge.reverseEdgeIndex)) {
-					//We have to change the current edge of this vertex, and maybe relabel it
-					relabelQueue.add(outVertex);
-				}
-			}
-		}
-		newHeight++;
-		vertex.height = newHeight;
+		relabels++;
 	}
 
 	protected void relabelBy1(Vertex vertex) {
@@ -427,19 +368,19 @@ public class HighestVertex_GR_Exact extends FlowAlgorithm {
 		}
 		return maxFlow;
 	}
-
+	
 	protected void globalRelabel() {
-		// Backwards BFS from t
-		// It will follow residual edges.
-		// The distance is set from the vertex that is popped to the adjacent ones
-		// that haven't been visited yet.
-		// The heights might change completely. The easiest thing is to clear the
-		// height data structures and fill them again.
-		// PUERTO RICO ME LO REGALO
+		//Backwards BFS from t
+		//It will follow residual edges.
+		//The distance is set from the vertex that is popped to the adjacent ones
+		//that haven't been visited yet.
+		//The heights might change completely. The easiest thing is to clear the
+		//height data structures and fill them again.
+		//PUERTO RICO ME LO REGALO
 		Arrays.fill(visited, false);
 		EraserLinkedList<Vertex> allVertices = new EraserLinkedList<>();
 		Vertex v;
-		for (int i = 0; i < n; i++) {
+		for (int i = 0; i < n; i++) { 
 			activeHeights[i].clear();
 			nonActiveHeights[i].clear();
 			v = vertices.get(i);
@@ -451,42 +392,35 @@ public class HighestVertex_GR_Exact extends FlowAlgorithm {
 		Vertex sink = vertices.get(t);
 		allVertices.remove(sink.nonActivePointer);
 		sink.nonActivePointer = nonActiveHeights[0].addAndReturnPointer(sink);
-		b = 0;
+		b.clear();
 		visited[t] = true;
 		visited[s] = true;
 		q.reset();
 		q.add(vertices.get(t));
 		while (!q.isEmpty()) {
 			Vertex vertex = q.poll();
-			vertex.currentEdge = -1;
 			int newHeight = vertex.height + 1;
 			List<OneEndpointEdge> adj = g.getAdjacencyList(vertex.v);
 			OneEndpointEdge edge, reverseEdge;
 			int out_v;
-			Vertex out_vertex;
 			for (int i = 0; i < adj.size(); i++) {
 				edge = adj.get(i);
 				out_v = edge.endVertex;
-				out_vertex = vertices.get(out_v);
-				if (visited[out_v]) {
-					//It might be a chance to set the current edge
-					if (vertex.currentEdge == -1 && 
-							out_vertex.height == vertex.height - 1) {
-						vertex.currentEdge = i;
-					}
-					continue;
-				} //Else, it is a vertex at the same or higher distance. It won't be eligible for current edge
+				if (visited[out_v]) continue;
 				reverseEdge = g.getAdjacencyList(out_v).get(edge.reverseEdgeIndex);
-				if (reverseEdge.remainingCapacity() > 0) { // This applies both to backward and forward edges
-					// We got an augmenting path
+				if (reverseEdge.remainingCapacity() > 0) { //This applies both to backward and forward edges
+					//We got an augmenting path
 					visited[out_v] = true;
+					Vertex out_vertex = vertices.get(out_v);
 					out_vertex.height = newHeight;
+					out_vertex.currentEdge = 0;
 					if (out_vertex.isActive()) {
 						activeHeights[newHeight].add(out_vertex);
 						allVertices.remove(out_vertex.nonActivePointer);
 						out_vertex.nonActivePointer = null;
-						if (newHeight < n)
-							b = Math.max(b, newHeight);
+						if (newHeight < n && (b.isEmpty() || b.peek() < newHeight)) {
+							b.push(newHeight);
+						}
 					} else {
 						if (DEBUG) {
 							testAugPathN(newHeight, out_vertex);
@@ -503,10 +437,10 @@ public class HighestVertex_GR_Exact extends FlowAlgorithm {
 			v.nonActivePointer = null;
 			v.height = n;
 		}
-		// End of global relabel
+		//End of global relabel
 		if (DEBUG) testGlobalRelabel();
 	}
-
+	
 	/*
 	 * TESTS
 	 */
@@ -537,7 +471,6 @@ public class HighestVertex_GR_Exact extends FlowAlgorithm {
 
 	protected void testValidRelabel(Vertex vertex, List<OneEndpointEdge> adj) {
 		// check that it has excess and it cannot push forward
-		/*
 		if (vertex.isActive()) {
 			OneEndpointEdge outEdge;
 			for (int i = 0; i < adj.size(); i++) {
@@ -555,11 +488,9 @@ public class HighestVertex_GR_Exact extends FlowAlgorithm {
 			throw new RuntimeException(
 					"Relabelling a vertex without excess: " + vertex.v + " at height " + vertex.height);
 		}
-		*/
 	}
 	
 	protected void testB(boolean ret) {
-		/*
 		int i = 0;
 		while (i < n && (activeHeights[i] == null || activeHeights[i].isEmpty())) {
 			i++;
@@ -568,9 +499,8 @@ public class HighestVertex_GR_Exact extends FlowAlgorithm {
 		if (excess && !ret) {
 			System.err.println("Iteration " + iteration);
 			throw new RuntimeException("There was a vertex with excess at height " + i + " but the pointer was "
-					+ "at height " + b + " and it found none");
+					+ "at height " + b.peek() + " and it found none");
 		}
-		*/
 	}
 	
 	protected void testAugPathN(int newHeight, Vertex out_vertex) {
@@ -583,7 +513,6 @@ public class HighestVertex_GR_Exact extends FlowAlgorithm {
 
 	protected void testGlobalRelabel() {
 		// Check that the conditions hold
-		/*
 		for (int i = 0; i < vertices.size(); i++) {
 			if (i == s || i == t)
 				continue;
@@ -605,7 +534,6 @@ public class HighestVertex_GR_Exact extends FlowAlgorithm {
 				}
 			}
 		}
-		*/
 	}
 
 	/*

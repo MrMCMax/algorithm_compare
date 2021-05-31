@@ -380,19 +380,22 @@ public class HighestVertexGapRelabelling2 extends FlowAlgorithm {
 		Arrays.fill(visited, false);
 		EraserLinkedList<Vertex> allVertices = new EraserLinkedList<>();
 		Vertex v;
+		//Clear data structures. Create all vertices list.
 		for (int i = 0; i < n; i++) { 
 			activeHeights[i].clear();
 			nonActiveHeights[i].clear();
 			v = vertices.get(i);
 			v.nonActivePointer = allVertices.addAndReturnPointer(v);
-		}
+		}		
+		b = 0;
+		//Remove source and sink from all vertices list.
 		Vertex source = vertices.get(s);
 		allVertices.remove(source.nonActivePointer);
 		source.nonActivePointer = null;
 		Vertex sink = vertices.get(t);
 		allVertices.remove(sink.nonActivePointer);
 		sink.nonActivePointer = nonActiveHeights[0].addAndReturnPointer(sink);
-		b = 0;
+		//Start the BFS. Set source and sink as visited, reset queue, enqueue t.
 		visited[t] = true;
 		visited[s] = true;
 		q.reset();

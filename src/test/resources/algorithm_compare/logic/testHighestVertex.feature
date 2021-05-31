@@ -16,13 +16,13 @@
 #""
 ## (Comments)
 #Sample Feature Definition Template
-Feature: Test throrough correctness of HighestVertex
+Feature: Test throrough correctness of FIFOPR_Gl_Gap
 	@Correctness
 	Scenario: Test HighestVertexStack
-	  Given the test network "10000size.max"
-    And the list of algorithms "HighestVertex_GR_Exact"
+	  Given the test network "sparse10M.max"
+    And the list of algorithms "FIFOPR_Gl_Gap, FIFOPushRelabelVertexGlR, HighestVertexGapRelabelling2, HighestVertexGapRelabellingStack, HighestVertexGapRelabelling2_N, HighestVertexGapRelabellingStack_N"
     And a default logic service
-    And the debug mode is turned on
+    #And the debug mode is turned on
     When We run the algorithms on the network
-    Then we get the result 14520 on all of them
-    And the debug mode is turned off
+    Then we get the result 9999999 on all of them
+    #And the debug mode is turned off

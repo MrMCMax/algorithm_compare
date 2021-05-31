@@ -13,10 +13,10 @@ import mrmcmax.data_structures.linear.EasyQueue;
 import mrmcmax.data_structures.linear.EraserLinkedList;
 import mrmcmax.data_structures.linear.EraserLinkedList.Node;
 
-public class FIFOPushRelabelVertexGlR extends FlowAlgorithm {
+public class FIFOPR_Gl_Gap extends FlowAlgorithm {
 
-	public FIFOPushRelabelVertexGlR() {
-		super("FIFOPushRelabelVertexGlR");
+	public FIFOPR_Gl_Gap() {
+		super("FIFOPR_Gl_Gap");
 	}
 
 	protected ResidualGraphList g;
@@ -30,6 +30,9 @@ public class FIFOPushRelabelVertexGlR extends FlowAlgorithm {
 	protected static int GLOBAL_RELABEL_FREQ;
 	protected EasyQueue<Vertex> q;
 	protected boolean visited[];
+	//For gap relabelling
+	protected EraserLinkedList<Vertex>[] activeVertices;
+	protected EraserLinkedList<Vertex>[] nonActiveVertices;
 	
 	protected class Vertex {
 		protected int v;
@@ -37,6 +40,8 @@ public class FIFOPushRelabelVertexGlR extends FlowAlgorithm {
 		protected int height;
 		protected int excess;
 		protected Node<Vertex> globalRelabelPointer;
+		protected Node<Vertex> activePointer;
+		protected Node<Vertex> nonActivePointer;
 		
 		public Vertex(int v) {
 			this.v = v;
@@ -76,6 +81,10 @@ public class FIFOPushRelabelVertexGlR extends FlowAlgorithm {
 		protected void relabelBy1() {
 			this.height += 1;
 		}
+		
+		public String toString() {
+			return "(vertex " + v + ", d(v)=" + height + ")";
+		}
 	}
 	/**
 	 * Precondition: all flows are zero.
@@ -87,7 +96,7 @@ public class FIFOPushRelabelVertexGlR extends FlowAlgorithm {
 		this.s = g.getSource();
 		this.t = g.getSink();
 		int m = g.getNumEdges();
-		this.GLOBAL_RELABEL_FREQ = m;
+		this.GLOBAL_RELABEL_FREQ = n;
 		// Set up data structures. This method can be overriden for 
 		// different data structure choices.
 		initDataStructures();
@@ -98,14 +107,19 @@ public class FIFOPushRelabelVertexGlR extends FlowAlgorithm {
 		return algorithm();
 	}
 
+	@SuppressWarnings("unchecked")
 	public void initDataStructures() {
 		vertices = new ArrayList<Vertex>(n);
 		FIFOQueue = new LinkedList<Vertex>();
+		activeVertices = new EraserLinkedList[n];
+		nonActiveVertices = new EraserLinkedList[n];
 		visited = new boolean[n];
 		q = new ArrayLimitQueue<Vertex>(Vertex.class, n);
 		//Create vertices
 		for (int i = 0; i < n; i++) {
 			vertices.add(new Vertex(i));
+			activeVertices[i] = new EraserLinkedList<Vertex>();
+			nonActiveVertices[i] = new EraserLinkedList<Vertex>();
 		}
 		vertices.get(s).increaseHeightBy(n);
 	}
@@ -132,7 +146,8 @@ public class FIFOPushRelabelVertexGlR extends FlowAlgorithm {
 		// Go
 		long maxFlow = 0;
 		while (!thereAreVerticesWithExcess()) {
-			Vertex vertex = getVertexWithExcess(); // Peeks
+			Vertex vertex = getVertexWithExcess(); // Polls
+			if (vertex.height >= n) continue;
 			List<OneEndpointEdge> adj = g.getAdjacencyList(vertex.v);
 			int e = vertex.currentEdge;
 			int v_h = vertex.height;
@@ -141,8 +156,9 @@ public class FIFOPushRelabelVertexGlR extends FlowAlgorithm {
 			while (!relabel && vertex.excess > 0) {
 				//Search for an edge to push
 				boolean eligible = false;
+				OneEndpointEdge edge = null;
 				while (e < adj.size() && !eligible) {
-					OneEndpointEdge edge = adj.get(e);
+					edge = adj.get(e);
 					if (vertices.get(edge.endVertex).height >= v_h || edge.remainingCapacity() <= 0) {
 						e++;
 					} else {
@@ -151,11 +167,64 @@ public class FIFOPushRelabelVertexGlR extends FlowAlgorithm {
 				}
 				if (eligible) {
 					vertex.setCurrentEdge(e);
-					int delta = Math.min(vertex.excess, adj.get(e).remainingCapacity());
+					int delta = Math.min(vertex.excess, edge.remainingCapacity());
 					push(vertex, e, delta);
+					//Push might create excess on w.
+					if (edge.endVertex != t && edge.endVertex != s) {
+						Vertex w = vertices.get(edge.endVertex);
+						int oldExcess = w.excess;
+						w.increaseExcessBy(delta);
+						if (oldExcess == 0) {
+							addVertexWithExcess(w); //Lemma discovered with Inge: w will always will have excess
+							//We have to remove it from non-active vertices and add it to active vertices.
+							nonActiveVertices[w.height].remove(w.nonActivePointer);
+							w.nonActivePointer = null;
+							w.activePointer = activeVertices[w.height].addAndReturnPointer(w);
+						}
+					}
+					//Push might clear excess from the vertex. If that's the case, we have to take it out from active
+					//and add it to non-active. If it still has excess, its position in active is still correct.
+					vertex.decreaseExcessBy(delta);
+					if (vertex.excess == 0) {
+						activeVertices[vertex.height].remove(vertex.activePointer);
+						vertex.activePointer = null;
+						vertex.nonActivePointer = nonActiveVertices[vertex.height].addAndReturnPointer(vertex);
+					}
 				} else {
 					relabelByMin(vertex);
+					int newHeight = vertex.height;
 					vertex.setCurrentEdge(0);
+					//LETS CHECK FOR GAPS!
+					if (activeVertices[v_h].isEmpty() && nonActiveVertices[v_h].isEmpty()) {
+						//We have a gap.
+						vertex.height = n;
+						vertex.activePointer = null;
+						Vertex w;
+						EraserLinkedList<Vertex> activeHeight;
+						EraserLinkedList<Vertex> nonActiveHeight;
+						for (int i = v_h + 1; i < n; i++) {
+							activeHeight = activeVertices[i];
+							nonActiveHeight = nonActiveVertices[i];
+							while (!activeHeight.isEmpty()) {
+								w = activeHeight.poll();
+								w.height = n;
+								w.activePointer = null;
+							}
+							while (!nonActiveHeight.isEmpty()) {
+								w = nonActiveHeight.poll();
+								w.height = n;
+								w.nonActivePointer = null;
+							}
+						}
+					} else {
+						//We have to change the vertex from one active height to another
+						activeVertices[v_h].remove(vertex.activePointer);
+						if (newHeight < n) {
+							vertex.activePointer = activeVertices[newHeight].addAndReturnPointer(vertex);
+						} else {
+							vertex.activePointer = null;
+						}
+					}
 					relabel = true;
 				}
 			}
@@ -173,7 +242,7 @@ public class FIFOPushRelabelVertexGlR extends FlowAlgorithm {
 	}
 	
 	/**
-	 * Push operation. Also fixes excesses and vertices with excess.
+	 * Push operation. Only fixes edge.
 	 * @param vertex the vertex to push from
 	 * @param edge the edge in its adjacency list
 	 * @param flow the amount of flow to push (has to be calculated before)
@@ -182,14 +251,6 @@ public class FIFOPushRelabelVertexGlR extends FlowAlgorithm {
 		OneEndpointEdge e = g.getAdjacencyList(vertex.v).get(edge);
 		e.augment(flow);
 		g.getAdjacencyList(e.endVertex).get(e.reverseEdgeIndex).decrement(flow);
-		vertex.decreaseExcessBy(flow);
-		if (e.endVertex != t && e.endVertex != s) {
-			Vertex w = vertices.get(e.endVertex);
-			int oldExcess = w.excess;
-			w.increaseExcessBy(flow);
-			if (oldExcess == 0)
-				addVertexWithExcess(w); //Lemma discovered with Inge: w will always will have excess
-		}
 	}
 	
 	/**
@@ -234,8 +295,12 @@ public class FIFOPushRelabelVertexGlR extends FlowAlgorithm {
 		Vertex v;
 		FIFOQueue.clear();
 		for (int i = 0; i < n; i++) {
+			activeVertices[i].clear();
+			nonActiveVertices[i].clear();
 			v = vertices.get(i);
 			v.globalRelabelPointer = allVertices.addAndReturnPointer(v);
+			v.activePointer = null;
+			v.nonActivePointer = null;
 		}
 		Vertex source = vertices.get(s);
 		allVertices.remove(source.globalRelabelPointer);
@@ -266,6 +331,9 @@ public class FIFOPushRelabelVertexGlR extends FlowAlgorithm {
 					out_vertex.currentEdge = 0;
 					if (out_vertex.isActive()) {
 						addVertexWithExcess(out_vertex);
+						out_vertex.activePointer = activeVertices[newHeight].addAndReturnPointer(out_vertex);
+					} else {
+						out_vertex.nonActivePointer = nonActiveVertices[newHeight].addAndReturnPointer(out_vertex);
 					}
 					allVertices.remove(out_vertex.globalRelabelPointer);
 					out_vertex.globalRelabelPointer = null;
@@ -280,30 +348,34 @@ public class FIFOPushRelabelVertexGlR extends FlowAlgorithm {
 		}
 		//End of global relabel
 		if (DEBUG) {
-			//Check that the conditions hold
-			for (int i = 0; i < vertices.size(); i++) {
-				if (i == s || i == t) continue;
-				List<OneEndpointEdge> adj = g.getAdjacencyList(i);
-				Vertex vertex = vertices.get(i);
-				int height = vertex.height;
-				//BFS to see if the height is correct
-				
-				//Check if it has too steep edges
-				for (int j = 0; j < adj.size(); j++) {
-					OneEndpointEdge e = adj.get(j);
-					if (e.remainingCapacity() > 0) {
-						Vertex outVertex = vertices.get(e.endVertex);
-						if (outVertex.height < vertex.height - 1) {
-							//System.err.println("Iteration " + iteration);
-							throw new RuntimeException("Global relabelling made edge too steep: " + 
-									vertex.v + ", " + outVertex.v + " at heights " + vertex.height + ", " + outVertex.height);
-						}
+			testGlobalRelabel();
+		}
+	}
+	
+	private void testGlobalRelabel() {
+		//Check that the conditions hold
+		for (int i = 0; i < vertices.size(); i++) {
+			if (i == s || i == t) continue;
+			List<OneEndpointEdge> adj = g.getAdjacencyList(i);
+			Vertex vertex = vertices.get(i);
+			int height = vertex.height;
+			//BFS to see if the height is correct
+			
+			//Check if it has too steep edges
+			for (int j = 0; j < adj.size(); j++) {
+				OneEndpointEdge e = adj.get(j);
+				if (e.remainingCapacity() > 0) {
+					Vertex outVertex = vertices.get(e.endVertex);
+					if (outVertex.height < vertex.height - 1) {
+						//System.err.println("Iteration " + iteration);
+						throw new RuntimeException("Global relabelling made edge too steep: " + 
+								vertex.v + ", " + outVertex.v + " at heights " + vertex.height + ", " + outVertex.height);
 					}
 				}
 			}
 		}
 	}
-	
+
 	protected long calculateMaxFlow() {
 		long maxFlow = 0;
 		List<OneEndpointEdge> adjT = g.getAdjacencyList(t);
