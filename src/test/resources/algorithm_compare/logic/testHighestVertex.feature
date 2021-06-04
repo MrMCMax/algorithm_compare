@@ -16,13 +16,13 @@
 #""
 ## (Comments)
 #Sample Feature Definition Template
-Feature: Test throrough correctness of FIFOPR_Gl_Gap
+Feature: Test throrough correctness of HV_Gap_Gl_Exact
 	@Correctness
-	Scenario: Test HighestVertexStack
+	Scenario: Test HV_Gap_Gl_Exact
 	  Given the test network "LB07-bunny-med.max"
-    And the list of algorithms "HighestVertexGapRelabelling3"
+    And the list of algorithms "HV_Gap_Gl_Exact"
     And a default logic service
     And the debug mode is turned on
     When We run the algorithms on the network
     Then we get the result 3860022 on all of them
-    And the debug mode is turned off
+   	And the debug mode is turned off
