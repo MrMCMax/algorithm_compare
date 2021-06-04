@@ -174,7 +174,7 @@ public class HighestVertexGapRelabelling2 extends FlowAlgorithm {
 			}
 		}
 		// No need to change current edge of s because it will return to the start.
-		// globalRelabel();
+		//globalRelabel();
 	}
 
 	protected long algorithm() {
@@ -183,6 +183,7 @@ public class HighestVertexGapRelabelling2 extends FlowAlgorithm {
 			if (DEBUG) {
 				iteration++;
 			}
+			//System.out.println(iteration);
 			Vertex vertex = getVertexWithExcess(); // Peeks
 			if (vertex.height >= n) {
 				System.out.println("Weirdness");
@@ -440,7 +441,10 @@ public class HighestVertexGapRelabelling2 extends FlowAlgorithm {
 			v.height = n;
 		}
 		//End of global relabel
-		if (DEBUG) testGlobalRelabel();
+		if (DEBUG) {
+			System.out.println("Global relabel iteration " + iteration);
+			testGlobalRelabel();
+		}
 	}
 	
 	/*

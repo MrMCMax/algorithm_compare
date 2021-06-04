@@ -39,6 +39,8 @@ public class HighestVertexGapRelabelling2_N extends FlowAlgorithm {
 	protected static int GLOBAL_RELABEL_FREQ;
 	protected EasyQueue<Vertex> q;
 	protected boolean visited[];
+	//For gap relabelling
+	protected int gap_count = 0;
 
 	protected class Vertex {
 		protected int v;
@@ -261,6 +263,7 @@ public class HighestVertexGapRelabelling2_N extends FlowAlgorithm {
 						//Set to n the height of all vertices above oldHeight.
 						//We only need to check those above oldHeight. They will be either
 						//in activeHeights or nonActiveHeights.
+						gap_count++;
 						vertex.height = n;
 						Vertex w;
 						LinkedList<Vertex> activeHeight;
@@ -366,6 +369,8 @@ public class HighestVertexGapRelabelling2_N extends FlowAlgorithm {
 				maxFlow += e.remainingCapacity();
 			}
 		}
+		if (DEBUG)
+			System.out.println("Gap count: " + gap_count);
 		return maxFlow;
 	}
 	
@@ -440,7 +445,10 @@ public class HighestVertexGapRelabelling2_N extends FlowAlgorithm {
 			v.height = n;
 		}
 		//End of global relabel
-		if (DEBUG) testGlobalRelabel();
+		if (DEBUG) {
+			System.out.println("Global relabel iteration " + iteration);
+			testGlobalRelabel();
+		}
 	}
 	
 	/*
