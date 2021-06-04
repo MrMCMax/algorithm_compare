@@ -17,10 +17,10 @@ import mrmcmax.data_structures.linear.EasyQueue;
 import mrmcmax.data_structures.linear.EraserLinkedList;
 import mrmcmax.data_structures.linear.EraserLinkedList.Node;
 
-public class HighestVertexGapRelabelling2 extends FlowAlgorithm {
+public class HVGapOnly extends FlowAlgorithm {
 
-	public HighestVertexGapRelabelling2() {
-		super("HighestVertexGapRelabelling2");
+	public HVGapOnly() {
+		super("HVGapOnly");
 	}
 
 	protected ResidualGraphList g;
@@ -174,7 +174,7 @@ public class HighestVertexGapRelabelling2 extends FlowAlgorithm {
 			}
 		}
 		// No need to change current edge of s because it will return to the start.
-		// globalRelabel();
+		//globalRelabel();
 	}
 
 	protected long algorithm() {
@@ -204,7 +204,7 @@ public class HighestVertexGapRelabelling2 extends FlowAlgorithm {
 						e++;
 					} else {
 						if (DEBUG) {
-							testTooSteep(vertex, edge, v_h);
+							//testTooSteep(vertex, edge, v_h);
 						}
 						eligible = true;
 					}
@@ -227,7 +227,7 @@ public class HighestVertexGapRelabelling2 extends FlowAlgorithm {
 						}
 						if (DEBUG) {
 							//Make sure that the vertex that has excess is stored
-							testStored(w);
+							//testStored(w);
 						}
 					}
 					// Push might clear excess
@@ -242,7 +242,7 @@ public class HighestVertexGapRelabelling2 extends FlowAlgorithm {
 					}
 				} else {
 					if (DEBUG) {
-						testValidRelabel(vertex, adj);
+						//testValidRelabel(vertex, adj);
 					}
 					// Relabel sets the new height of the vertex
 					int oldHeight = vertex.height;
@@ -329,7 +329,7 @@ public class HighestVertexGapRelabelling2 extends FlowAlgorithm {
 		}
 		ret = b >= 0;
 		if (DEBUG) {
-			testB(ret);
+			//testB(ret);
 		}
 		return ret;
 	}
@@ -425,7 +425,7 @@ public class HighestVertexGapRelabelling2 extends FlowAlgorithm {
 							b = Math.max(b, newHeight);
 					} else {
 						if (DEBUG) {
-							testAugPathN(newHeight, out_vertex);
+							//testAugPathN(newHeight, out_vertex);
 						}
 						allVertices.remove(out_vertex.nonActivePointer);
 						out_vertex.nonActivePointer = nonActiveHeights[newHeight].addAndReturnPointer(out_vertex);
@@ -440,7 +440,7 @@ public class HighestVertexGapRelabelling2 extends FlowAlgorithm {
 			v.height = n;
 		}
 		//End of global relabel
-		if (DEBUG) testGlobalRelabel();
+		//if (DEBUG) testGlobalRelabel();
 	}
 	
 	/*

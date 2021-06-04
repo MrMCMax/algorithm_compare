@@ -19,10 +19,10 @@
 Feature: Test throrough correctness of FIFOPR_Gl_Gap
 	@Correctness
 	Scenario: Test HighestVertexStack
-	  Given the test network "sparse10M.max"
-    And the list of algorithms "FIFOPR_Gl_Gap, FIFOPushRelabelVertexGlR, HighestVertexGapRelabelling2, HighestVertexGapRelabellingStack, HighestVertexGapRelabelling2_N, HighestVertexGapRelabellingStack_N"
+	  Given the test network "LB07-bunny-med.max"
+    And the list of algorithms "HighestVertexGapRelabelling3"
     And a default logic service
-    #And the debug mode is turned on
+    And the debug mode is turned on
     When We run the algorithms on the network
-    Then we get the result 9999999 on all of them
-    #And the debug mode is turned off
+    Then we get the result 3860022 on all of them
+    And the debug mode is turned off
