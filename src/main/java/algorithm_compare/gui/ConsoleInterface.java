@@ -1,6 +1,7 @@
 package algorithm_compare.gui;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 
@@ -28,6 +29,7 @@ public class ConsoleInterface {
 				do {
 					try {
 						task = s.nextInt();
+						s.nextLine();
 					} catch (NumberFormatException e) {
 						System.err.println("Please select the index of a valid task (number)");
 						success = false;
@@ -64,11 +66,26 @@ public class ConsoleInterface {
 		System.out.println("Select a network:");
 		String network = s.nextLine();
 		long[] flowResults = logicService.computeNetworkWithAlgorithms(network, new String[] {algorithm});
-		System.out.println(flowResults);
+		System.out.println(Arrays.toString(flowResults));
 	}
 	
-	static void getTimes() {
-		
+	static void getTimes() throws IOException {
+		System.out.println("Algorithms available:");
+		List<String> algorithms = logicService.getListOfAlgorithms();
+		for (String s : algorithms) {
+			System.out.println(s);
+		}
+		System.out.println("Select an algorithm:");
+		String algorithm = s.nextLine();
+		System.out.println("Available networks:");
+		List<String> networks = logicService.getListOfNetworks();
+		for (String s : networks) {
+			System.out.println(s);
+		}
+		System.out.println("Select a network:");
+		String network = s.nextLine();
+		long[] timeResults = logicService.retrieveTimes(network, new String[] {algorithm});
+		System.out.println(Arrays.toString(timeResults));
 	}
 
 }
