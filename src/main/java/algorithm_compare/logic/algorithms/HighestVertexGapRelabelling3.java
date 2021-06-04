@@ -39,6 +39,8 @@ public class HighestVertexGapRelabelling3 extends FlowAlgorithm {
 	protected static int GLOBAL_RELABEL_FREQ;
 	protected EasyQueue<Vertex> q;
 	protected boolean visited[];
+	//For gap relabel:
+	protected int gap_count = 0;
 
 	protected class Vertex {
 		protected int v;
@@ -113,7 +115,7 @@ public class HighestVertexGapRelabelling3 extends FlowAlgorithm {
 		this.t = g.getSink();
 		this.m = g.getNumEdges();
 		int ratio = m/n;
-		GLOBAL_RELABEL_FREQ = m;
+		this.GLOBAL_RELABEL_FREQ = m;
 		// Set up data structures. This method can be overriden for
 		// different data structure choices.
 		initDataStructures();
@@ -172,6 +174,10 @@ public class HighestVertexGapRelabelling3 extends FlowAlgorithm {
 				}
 				w.increaseExcessBy(e.capacity);
 			}
+		}
+		if (DEBUG) {
+			//System.out.println(iteration);
+			System.out.println(DEBUG);
 		}
 		// No need to change current edge of s because it will return to the start.
 		//globalRelabel();
@@ -261,6 +267,7 @@ public class HighestVertexGapRelabelling3 extends FlowAlgorithm {
 						//Set to n the height of all vertices above oldHeight.
 						//We only need to check those above oldHeight. They will be either
 						//in activeHeights or nonActiveHeights.
+						gap_count++;
 						vertex.height = n;
 						Vertex w;
 						LinkedList<Vertex> activeHeight;
@@ -366,6 +373,8 @@ public class HighestVertexGapRelabelling3 extends FlowAlgorithm {
 				maxFlow += e.remainingCapacity();
 			}
 		}
+		if (DEBUG)
+			System.out.println("Gap count: " + gap_count);
 		return maxFlow;
 	}
 	
@@ -385,10 +394,10 @@ public class HighestVertexGapRelabelling3 extends FlowAlgorithm {
 			v.nonActivePointer = null;
 			v.height = n;
 		}
-		for (int i = 0; i < b; i++) {
+		for (int i = 0; i <= b; i++) {
 			activeHeights[i].clear();
 		}
-		for (int i = 0; i < highestNonActiveHeight; i++) {
+		for (int i = 0; i <= highestNonActiveHeight; i++) {
 			nonActiveHeights[i].clear();
 		}
 		b = 0;
@@ -423,6 +432,8 @@ public class HighestVertexGapRelabelling3 extends FlowAlgorithm {
 					if (out_vertex.isActive()) {
 						activeHeights[newHeight].add(out_vertex);
 						out_vertex.nonActivePointer = null;
+						if (newHeight >= n)
+							throw new RuntimeException("Found a vertex at height n with global relabelling");
 						b = Math.max(b, newHeight);
 					} else {
 						out_vertex.nonActivePointer = nonActiveHeights[newHeight].addAndReturnPointer(out_vertex);
@@ -433,7 +444,10 @@ public class HighestVertexGapRelabelling3 extends FlowAlgorithm {
 			}
 		}
 		//End of global relabel
-		if (DEBUG) testGlobalRelabel();
+		if (DEBUG) {
+			System.out.println("Global relabel iteration " + iteration);
+			testGlobalRelabel();
+		}
 	}
 	
 	/*
