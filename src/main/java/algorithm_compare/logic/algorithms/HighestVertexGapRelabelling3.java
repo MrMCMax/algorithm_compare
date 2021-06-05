@@ -9,7 +9,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import algorithm_compare.logic.algorithms.HighestVertex_GR_Exact.Vertex;
 import mrmcmax.data_structures.graphs.OneEndpointEdge;
 import mrmcmax.data_structures.graphs.ResidualGraphList;
 import mrmcmax.data_structures.linear.ArrayLimitQueue;
@@ -215,8 +214,8 @@ public class HighestVertexGapRelabelling3 extends FlowAlgorithm {
 						eligible = true;
 					}
 				}
+				vertex.setCurrentEdge(e);
 				if (eligible) {
-					vertex.setCurrentEdge(e);
 					int delta = Math.min(vertex.excess, adj.get(e).remainingCapacity());
 					push(vertex, e, delta);
 					// Push creates excess on the endvertex
@@ -240,6 +239,7 @@ public class HighestVertexGapRelabelling3 extends FlowAlgorithm {
 					vertex.decreaseExcessBy(delta);
 					if (vertex.excess == 0) {
 						vertex.nonActivePointer = nonActiveHeights[vertex.height].addAndReturnPointer(vertex);
+						highestNonActiveHeight = Math.max(highestNonActiveHeight, vertex.height);
 						LinkedList<Vertex> vertexHeight = activeHeights[vertex.height];
 						vertexHeight.pop(); //If we are working with vertex, it is at the start of the list
 						if (vertexHeight.isEmpty()) {
@@ -260,33 +260,28 @@ public class HighestVertexGapRelabelling3 extends FlowAlgorithm {
 					}
 					// WE MIGHT HAVE A GAP
 					if (activeHeights[oldHeight].isEmpty() && nonActiveHeights[oldHeight].isEmpty()) {
-						// The vertex is above a gap
-						//System.out.println("Theres a gap at height " + oldHeight);
-						//vertex.height = n;
-						//RELABEL GLOBAL
-						//Set to n the height of all vertices above oldHeight.
-						//We only need to check those above oldHeight. They will be either
-						//in activeHeights or nonActiveHeights.
-						gap_count++;
+						// RELABEL GLOBAL
+						// Set to n the height of all vertices above oldHeight.
+						// We only need to check those above oldHeight. They will be in non-active heights
+						// because the vertex at oldHeight was the highest, one and only, active vertex! 
+						// We set it to n too
+						if (DEBUG)
+							gap_count++;
 						vertex.height = n;
 						Vertex w;
-						LinkedList<Vertex> activeHeight;
 						EraserLinkedList<Vertex> nonActiveHeight;
-						for (int i = oldHeight + 1; i <= Math.max(highestNonActiveHeight, b); i++) {
-							activeHeight = activeHeights[i];
+						for (int i = oldHeight + 1; i <= highestNonActiveHeight; i++) {
 							nonActiveHeight = nonActiveHeights[i];
-							while (!activeHeight.isEmpty()) {
-								w = activeHeight.poll();
-								w.height = n;
-							}
 							while (!nonActiveHeight.isEmpty()) {
 								w = nonActiveHeight.poll();
 								w.nonActivePointer = null;
 								w.height = n;
 							}
 						}
-						// There are no other excess vertices at this height
+						// When the gap happened, this was the last active vertex at that height.
 						b--;
+						// Furthermore, there are no more vertex higher up
+						highestNonActiveHeight = oldHeight - 1;
 					} else if (newHeight >= n) {
 						// Vertex might have risen to n. There's no more augmenting path for him.
 						// But there are still non-active vertices at height oldHeight, so there's no gap.
