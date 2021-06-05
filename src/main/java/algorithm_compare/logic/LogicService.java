@@ -14,18 +14,7 @@ import java.util.stream.LongStream;
 
 import org.reflections.Reflections;
 
-import algorithm_compare.logic.algorithms.DinicsAlgorithm;
-import algorithm_compare.logic.algorithms.EdmondsKarp;
-import algorithm_compare.logic.algorithms.FIFOPushRelabel1;
-import algorithm_compare.logic.algorithms.FIFOPushRelabel2;
-import algorithm_compare.logic.algorithms.FIFOPushRelabel3;
-import algorithm_compare.logic.algorithms.FIFOPushRelabelVertex;
-import algorithm_compare.logic.algorithms.FirstPushRelabel;
 import algorithm_compare.logic.algorithms.FlowAlgorithm;
-import algorithm_compare.logic.algorithms.HighestVertex1;
-import algorithm_compare.logic.algorithms.NaivePushRelabel;
-import algorithm_compare.logic.algorithms.ScalingEdmondsKarp;
-import algorithm_compare.logic.algorithms.SecondPushRelabel;
 import algorithm_compare.persistence.GraphData;
 import algorithm_compare.persistence.GraphData.TwoEndpointEdge;
 import algorithm_compare.persistence.IPersistenceService;
