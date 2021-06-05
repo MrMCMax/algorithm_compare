@@ -111,8 +111,7 @@ public class HighestVertexGapRelabellingStack_N extends FlowAlgorithm {
 		this.s = g.getSource();
 		this.t = g.getSink();
 		this.m = g.getNumEdges();
-		int ratio = m/n;
-		this.GLOBAL_RELABEL_FREQ = m;
+		this.GLOBAL_RELABEL_FREQ = n;
 		// Set up data structures. This method can be overriden for
 		// different data structure choices.
 		initDataStructures();
