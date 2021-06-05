@@ -216,7 +216,7 @@ public class HighestVertexGapRelabelling3 extends FlowAlgorithm {
 				}
 				vertex.setCurrentEdge(e);
 				if (eligible) {
-					int delta = Math.min(vertex.excess, adj.get(e).remainingCapacity());
+					int delta = Math.min(vertex.excess, edge.remainingCapacity());
 					push(vertex, e, delta);
 					// Push creates excess on the endvertex
 					if (edge.endVertex != t && edge.endVertex != s) {
