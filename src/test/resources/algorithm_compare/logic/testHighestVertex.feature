@@ -16,11 +16,11 @@
 #""
 ## (Comments)
 #Sample Feature Definition Template
-Feature: Test throrough correctness of HV_Gap_Gl_Exact
+Feature: Test throrough correctness of FIFOPR_Gl_Gap2
 	@Correctness
-	Scenario: Test HV_Gap_Gl_Exact
+	Scenario: Test FIFOPR_Gl_Gap2
 	  Given the test network "LB07-bunny-med.max"
-    And the list of algorithms "HV_Gap_Gl_Exact"
+    And the list of algorithms "FIFOPR_Gl_Gap2"
     And a default logic service
     And the debug mode is turned on
     When We run the algorithms on the network
