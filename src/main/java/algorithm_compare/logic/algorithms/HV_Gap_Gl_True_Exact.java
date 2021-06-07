@@ -408,7 +408,7 @@ public class HV_Gap_Gl_True_Exact extends FlowAlgorithm {
 	}
 
 	/**
-	 * For maximum relabel
+	 * For exact relabel
 	 * 
 	 * @param vertex
 	 */

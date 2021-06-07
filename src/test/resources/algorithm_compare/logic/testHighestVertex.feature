@@ -19,10 +19,10 @@
 Feature: Test throrough correctness of FIFOPR_Gl_Gap2
 	@Correctness
 	Scenario: Test FIFOPR_Gl_Gap2
-	  Given the test network "LB07-bunny-med.max"
-    And the list of algorithms "FIFOPR_Gl_Gap2"
+	  Given the test network "LB07-bunny-sml.max"
+    And the list of algorithms "FIFOPR_Exact"
     And a default logic service
     And the debug mode is turned on
     When We run the algorithms on the network
-    Then we get the result 3860022 on all of them
+    Then we get the result 961163 on all of them
    	And the debug mode is turned off
