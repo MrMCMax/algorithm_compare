@@ -288,8 +288,9 @@ public class HV_Gap_Gl_True_Exact_Stack extends FlowAlgorithm {
 						if (valid) continue; //We have found a current edge for this vertex
 						// OPERATION 2: Relabel sets the new height of the vertex
 						int oldHeight = vertex.height;
-						exactRelabel(vertex);
+						int newCurrentEdge = exactRelabel(vertex);
 						int newHeight = vertex.height;
+						vertex.setCurrentEdge(newCurrentEdge);
 						if (DEBUG) {
 							if (newHeight <= oldHeight) {
 								System.err.println("Iteration " + iteration);
@@ -349,7 +350,6 @@ public class HV_Gap_Gl_True_Exact_Stack extends FlowAlgorithm {
 								vertex.nonActivePointer = nonActiveHeights[newHeight].addAndReturnPointer(vertex);
 								highestNonActiveHeight = Math.max(highestNonActiveHeight, newHeight);
 							}
-							vertex.setCurrentEdge(0);
 						}
 					}
 					relabel = true;
@@ -408,15 +408,21 @@ public class HV_Gap_Gl_True_Exact_Stack extends FlowAlgorithm {
 	 * 
 	 * @param vertex
 	 */
-	protected void exactRelabel(Vertex vertex) {
+	protected int exactRelabel(Vertex vertex) {
 		List<OneEndpointEdge> adj = g.getAdjacencyList(vertex.v);
 		int newHeight = Integer.MAX_VALUE;
 		OneEndpointEdge edge = null;
 		Vertex outVertex = null;
+		int newCurrentEdge = 0;
+		int h;
 		for (int i = 0; i < adj.size(); i++) {
 			edge = adj.get(i);
 			if (edge.remainingCapacity() > 0) {
-				newHeight = Math.min(newHeight, vertices.get(edge.endVertex).height);
+				h = vertices.get(edge.endVertex).height;
+				if (h < newHeight) {
+					newHeight = h;
+					newCurrentEdge = i;
+				}
 			}
 			// Add to relabel queue if the vertex is at the required height and the
 			// current edge of it points to this vertex.
@@ -428,6 +434,7 @@ public class HV_Gap_Gl_True_Exact_Stack extends FlowAlgorithm {
 		}
 		newHeight++;
 		vertex.height = newHeight;
+		return newCurrentEdge;
 	}
 
 	protected void relabelBy1(Vertex vertex) {
