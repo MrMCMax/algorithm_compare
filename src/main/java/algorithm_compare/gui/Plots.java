@@ -26,6 +26,9 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
+
+import algorithm_compare.logic.ILogicService;
+
 import javax.swing.JTextPane;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -91,13 +94,19 @@ public class Plots extends JFrame {
 	}
 
 	public void printPython() throws IOException {
+		String text = pythonText(launcher.logic(), networkNames, algorithmNames, values);
+		textPane.setText(text);
+	}
+	
+	public static String pythonText(ILogicService logic, List<String> networkNames,
+			List<String> algorithmNames, Long[][] values) throws IOException {
 		StringBuilder sb = new StringBuilder();
 		sb.append("#!/usr/bin/env python3\nimport matplotlib.pyplot as plt\n");
 		//Network names array
 		sb.append("x=[");
-		sb.append(launcher.logic().getNetworkNVertices(networkNames.get(0)));
+		sb.append(logic.getNetworkNVertices(networkNames.get(0)));
 		for (int i = 1; i < networkNames.size(); i++) {
-			sb.append(",").append(launcher.logic().getNetworkNVertices(networkNames.get(i)));
+			sb.append(",").append(logic.getNetworkNVertices(networkNames.get(i)));
 		}
 		sb.append("]\n").append("xi = list(range(len(x)))\n");
 		// Y ranges
@@ -119,7 +128,7 @@ public class Plots extends JFrame {
 		sb.append("plt.title('Times')\n");
 		sb.append("plt.legend()\n");
 		sb.append("plt.show()\n");
-		textPane.setText(sb.toString());
+		return sb.toString();
 	}
 
 	public void load() {

@@ -123,7 +123,7 @@ public class PersistenceService implements IPersistenceService {
 	@Override
 	public long[] retrieveTimes(String name, String[] algs) throws IOException {
 		if (!networks.containsKey(name)) {
-			throw new IOException("Network not found");
+			throw new IOException("Network not found: \"" + name + "\"");
 		}
 		Network net = networks.get(name);
 		return net.retrieveTimes(algs);
@@ -132,7 +132,7 @@ public class PersistenceService implements IPersistenceService {
 	@Override
 	public void deleteTimes(String name, String[] algs) throws IOException {
 		if (!networks.containsKey(name)) {
-			throw new IOException("Network not found");
+			throw new IOException("Network not found: \"" + name + "\"");
 		}
 		Network net = networks.get(name);
 		net.deleteTimes(algs);

@@ -1,0 +1,18 @@
+c AK Network with 4 vertices in the upper path
+p max    10    14
+n    9  s
+n    10  t
+a    1    2    4
+a    2    3    3
+a    3    4    2
+a    5    6    5
+a    6    7    5
+a    7    8    5
+a    1    5    1
+a    2    5    1
+a    3    5    1
+a    4    5    1
+a    9    1    5
+a    9    5    1
+a    4    10    1
+a    8    10    5
