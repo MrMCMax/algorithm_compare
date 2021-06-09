@@ -56,7 +56,6 @@ public class PersistenceService implements IPersistenceService {
 				return !(new File(path.toUri()).isDirectory());
 			}).forEach((path) -> {
 				String name = path.getFileName().toString();
-				System.out.println("Network name fetched: " + name);
 				names.add(name);
 				try {
 					loadMetadata(name, path.toAbsolutePath().toString());
