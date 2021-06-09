@@ -21,10 +21,10 @@ import static algorithm_compare.persistence.GraphData.TwoEndpointEdge;
 
 public class PersistenceService implements IPersistenceService {
 
-	public static final String PATH_TO_RESOURCES = "./src/main/resources/persistence/networks/";
+	public static String PATH_TO_RESOURCES = "../persistence/networks/";
 
 	// Where the times are stored
-	protected static final String PATH_TO_DATA = "./src/main/resources/persistence/networkData/";
+	protected static String PATH_TO_DATA = "../persistence/networkData/";
 
 	private String rootDirectory;
 
@@ -49,15 +49,19 @@ public class PersistenceService implements IPersistenceService {
 	@Override
 	public List<String> getAllNetworkNames() throws IOException {
 		List<String> names = new ArrayList<>();
+			File r = new File(rootDirectory);
+			System.out.println("Root directory: " + r.getAbsolutePath());
 		try {
 			Files.walk(Paths.get(rootDirectory)).sequential().filter((path) -> {
 				return !(new File(path.toUri()).isDirectory());
 			}).forEach((path) -> {
 				String name = path.getFileName().toString();
+				System.out.println("Network name fetched: " + name);
 				names.add(name);
 				try {
 					loadMetadata(name, path.toAbsolutePath().toString());
 				} catch (IOException e) {
+					System.out.println("Error loading metadata");
 					throw new RuntimeException(e);
 				}
 			});

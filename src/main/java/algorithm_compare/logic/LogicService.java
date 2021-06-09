@@ -35,6 +35,15 @@ public class LogicService implements ILogicService {
 	 */
 	public LogicService() throws IOException {
 		this.persistenceService = new PersistenceService();
+		initialise();
+	}
+	
+	public LogicService(IPersistenceService persistenceService) {
+		this.persistenceService = persistenceService;
+		initialise();
+	}
+	
+	private void initialise() {
 		loadedGraphs = new HashMap<>();
 		algorithmMap = new HashMap<>();
 		/*
@@ -87,10 +96,6 @@ public class LogicService implements ILogicService {
 				e.printStackTrace();
 			}
 		}
-	}
-	
-	public LogicService(IPersistenceService persistenceService) {
-		this.persistenceService = persistenceService;
 	}
 	
 	@Override

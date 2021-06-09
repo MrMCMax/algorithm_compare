@@ -20,6 +20,8 @@ public class Launcher {
 	private JFrame frmAlgorithmCompare;
 	private final Action action = new SwingAction();
 	
+	private static final String PATH_TO_RESOURCES = "";
+	
 	private ILogicService logicService;
 
 	/**
@@ -108,6 +110,7 @@ public class Launcher {
 		try {
 			logicService = new LogicService();
 		} catch (Exception e) {
+			System.err.println(e);
 			showErrorMessage(frmAlgorithmCompare, e.getMessage());
 		}
 	}

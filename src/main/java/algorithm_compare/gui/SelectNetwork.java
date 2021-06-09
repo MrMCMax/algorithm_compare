@@ -174,6 +174,7 @@ public class SelectNetwork extends JFrame {
 			DefaultListModel<String> model2 = new DefaultListModel<String>();
 			selectedNetworksList.setModel(model2);
 		} catch (IOException e1) {
+			System.err.println(e1);
 			Launcher.showErrorMessage(this, e1.getMessage());
 		}
 	}

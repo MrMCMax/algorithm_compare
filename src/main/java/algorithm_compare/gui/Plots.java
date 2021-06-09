@@ -141,6 +141,7 @@ public class Plots extends JFrame {
 					int x = launcher.logic().getNetworkNVertices(networkNames.get(j));
 					series.add(x, values[j][i]); // X: network index, Y: net j, alg i
 				} catch (IOException e) {
+					System.err.println(e);
 					Launcher.showErrorMessage(this, "Cannot find network " + networkNames.get(j));
 				}
 			}

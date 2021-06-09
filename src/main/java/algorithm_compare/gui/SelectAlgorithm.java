@@ -205,6 +205,7 @@ public class SelectAlgorithm extends JFrame {
 					results[i][j] = res[j];
 				
 			} catch (IOException e1) {
+				System.err.println(e1);
 				Launcher.showErrorMessage(SelectAlgorithm.this, e1.getMessage());
 			}
 		}
@@ -234,6 +235,7 @@ public class SelectAlgorithm extends JFrame {
 					results[i][j] = res[j];
 				}
 			} catch (IOException e) {
+				System.err.println(e);
 				Launcher.showErrorMessage(SelectAlgorithm.this, e.getMessage());
 			}
 		}
@@ -244,6 +246,7 @@ public class SelectAlgorithm extends JFrame {
 		try {
 			pl.printPython();
 		} catch (IOException e) {
+			System.err.println(e);
 			Launcher.showErrorMessage(this, e.getMessage());
 		}
 		pl.setVisible(true);
