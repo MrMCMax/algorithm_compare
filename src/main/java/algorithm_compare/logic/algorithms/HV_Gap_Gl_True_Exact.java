@@ -436,7 +436,11 @@ public class HV_Gap_Gl_True_Exact extends FlowAlgorithm {
 				relabelQueue.add(outVertex);
 			}
 		}
-		newHeight++;
+		if (newHeight == Integer.MAX_VALUE) {
+			newHeight = n; //Dead end
+		} else {
+			newHeight++;
+		}
 		vertex.height = newHeight;
 		return newCurrentEdge;
 	}

@@ -287,7 +287,11 @@ public class FIFOPR_Exact extends FlowAlgorithm {
 				relabelQueue.add(outVertex);
 			}
 		}
-		newHeight++;
+		if (newHeight == Integer.MAX_VALUE) {
+			newHeight = n;
+		} else {
+			newHeight++;	
+		}
 		vertex.height = newHeight;
 	}
 
