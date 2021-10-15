@@ -14,12 +14,12 @@ import java.util.stream.LongStream;
 
 import org.reflections.Reflections;
 
-import algorithm_compare.logic.algorithms.FlowAlgorithm;
 import algorithm_compare.persistence.GraphData;
 import algorithm_compare.persistence.GraphData.TwoEndpointEdge;
 import algorithm_compare.persistence.IPersistenceService;
 import algorithm_compare.persistence.PersistenceService;
 import mrmcmax.data_structures.graphs.ResidualGraphList;
+import mrmcmax.data_structures.graphs.maxflow.FlowAlgorithm;
 
 public class LogicService implements ILogicService {
 	
@@ -70,7 +70,7 @@ public class LogicService implements ILogicService {
 		algorithmMap.put(fifoPushRelabelVertex.getName(), fifoPushRelabelVertex);
 		algorithmMap.put(naivePushRelabel.getName(), naivePushRelabel);
 		*/
-		Reflections refls = new Reflections("algorithm_compare.logic.algorithms");
+		Reflections refls = new Reflections("mrmcmax.data_structures.graphs.maxflow");
 		Set<Class<? extends FlowAlgorithm>> subTypes = refls.getSubTypesOf(FlowAlgorithm.class);
 		Iterator<Class<? extends FlowAlgorithm>> it = subTypes.iterator();
 		while (it.hasNext()) {

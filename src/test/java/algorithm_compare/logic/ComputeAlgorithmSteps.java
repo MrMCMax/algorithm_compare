@@ -7,10 +7,10 @@ import java.io.IOException;
 import java.util.Arrays;
 
 import algorithm_compare.TestUtils;
-import algorithm_compare.logic.algorithms.FlowAlgorithm;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import mrmcmax.data_structures.graphs.maxflow.FlowAlgorithm;
 
 public class ComputeAlgorithmSteps {
 	
